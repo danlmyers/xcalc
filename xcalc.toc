@@ -1,9 +1,9 @@
 ## Interface: 30100
 ## Title: xcalc
 ## Author: Moird
-## Version: 2.1.17
+## Version: @project-version@
 ## Notes: Basic Calculator
-## eMail: peirthies@gmail.com
+## eMail: dan@moird.com
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
 ## SavedVariablesPerCharacter: Xcalc_Settings
