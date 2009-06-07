@@ -83,6 +83,37 @@ function xcalc_unbind()
     end
 end
 
+--Handle Key Inputs
+function xcalc_buttoninput(key)
+	if ( key == "CL" ) then
+		xcalc_clear()
+	elseif ( key == "CE") then
+		xcalc_ce()
+	elseif ( key == "PM" ) then
+		xcalc_plusminus()
+	elseif ( key == "GOLD" ) then
+		xcalc_stategold()
+	elseif ( key == "SILVER" ) then
+		xcalc_statesilver()
+	elseif ( key == "COPPER" ) then
+		xcalc_statecopper()
+	elseif ( key == "MC" ) then
+		xcalc_mc()
+	elseif ( key == "MA" ) then
+		xcalc_ma()
+	elseif ( key == "MS" ) then
+		xcalc_ms()
+	elseif ( key == "MR" ) then
+		xcalc_mr()
+	elseif ( key == "BS" ) then
+		xcalc_backspace()
+	elseif (key == "/" or key == "*" or key == "-" or key == "-" or key == "+" or key == "^") then
+		xcalc_funckey(key)
+	else
+		numkey(key)
+	end
+end
+
 --Button Clear
 function xcalc_clear()
     XCALC_RUNNINGTOTAL = ""
