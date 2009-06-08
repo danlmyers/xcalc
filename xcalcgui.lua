@@ -146,7 +146,7 @@ function xcalc_windowframe()
     pmbutton:SetHeight(32)
     pmbutton:SetPoint("TOPLEFT",190,-108)
     pmbutton:SetText("+/-")
-    pmbutton:SetScript("OnClick", function() xcalc_buttoninput() end)
+    pmbutton:SetScript("OnClick", function() xcalc_buttoninput("PM") end)
     --Plus Button
     local plusbutton = CreateFrame("Button", "plusbutton",frame,"UIPanelButtonTemplate")
     plusbutton:SetWidth(29)

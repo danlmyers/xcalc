@@ -107,7 +107,7 @@ function xcalc_buttoninput(key)
 		xcalc_mr()
 	elseif ( key == "BS" ) then
 		xcalc_backspace()
-	elseif (key == "/" or key == "*" or key == "-" or key == "-" or key == "+" or key == "^") then
+	elseif (key == "=" or key == "/" or key == "*" or key == "-" or key == "-" or key == "+" or key == "^") then
 		xcalc_funckey(key)
 	else
 		xcalc_numkey(key)
@@ -173,10 +173,8 @@ end
 --Button Silver (state)
 function xcalc_statesilver()
     local currText = XCALC_NUMBERDISPLAY
-	if (string.find(currText, "c") == nil) then
-		if (string.find(currText, "s") == nil) then
-			currText = currText .. "s"
-		end
+	if (string.find(currText, "[cs]") == nil) then
+		currText = currText .. "s"
 	end
     XCALC_PREVIOUSKEYTYPE = "state"
     xcalc_display(currText)
@@ -260,14 +258,8 @@ function xcalc_numkey(key)
 	
 	if (XCALC_PREVIOUSKEYTYPE=="none" or XCALC_PREVIOUSKEYTYPE=="num" or XCALC_PREVIOUSKEYTYPE=="state")then
 		if (key == ".") then
-			if (string.find(currText, "c") == nil) then
-				if (string.find(currText, "s") == nil) then
-					if (string.find(currText, "g") == nil) then
-						if (string.find(currText, "%.") == nil) then
-							currText = currText .. "."
-						end
-					end
-				end
+			if (string.find(currText, "[csg%.]") == nil) then
+				currText = currText .. "."
 			end
 		else
 			if (currText == "0") then
