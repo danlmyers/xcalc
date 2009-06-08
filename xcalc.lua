@@ -110,7 +110,7 @@ function xcalc_buttoninput(key)
 	elseif (key == "/" or key == "*" or key == "-" or key == "-" or key == "+" or key == "^") then
 		xcalc_funckey(key)
 	else
-		numkey(key)
+		xcalc_numkey(key)
 	end
 end
 
@@ -163,12 +163,8 @@ end
 --Button Gold (state)
 function xcalc_stategold()
     local currText = XCALC_NUMBERDISPLAY
-	if (string.find(currText, "c") == nil) then
-		if (string.find(currText, "s") == nil) then
-			if (string.find(currText, "g") == nil) then
-				currText = currText .. "g"
-			end
-		end
+	if (string.find(currText, "[csg]") == nil) then
+		currText = currText .. "g"
 	end
     XCALC_PREVIOUSKEYTYPE = "state"
     xcalc_display(currText)
