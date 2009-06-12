@@ -295,12 +295,14 @@ function xcalc_windowframe()
     mrbutton:SetText("MR")
     mrbutton:SetScript("OnClick", function() xcalc_buttoninput("MR") end)
     --Memory Clear Button
-    local mcbutton = CreateFrame("Button", "mcbutton",frame,"UIPanelButtonTemplate")
-    mcbutton:SetWidth(29)
-    mcbutton:SetHeight(32)
-    mcbutton:SetPoint("TOPLEFT",15,-108)
-    mcbutton:SetText("MC")
-    mcbutton:SetScript("OnClick", function() xcalc_buttoninput("MC") end)
+    --local mcbutton = CreateFrame("Button", "mcbutton",frame,"UIPanelButtonTemplate")
+    --mcbutton:SetWidth(29)
+    --mcbutton:SetHeight(32)
+    --mcbutton:SetPoint("TOPLEFT",15,-108)
+    --mcbutton:SetText("MC")
+    --mcbutton:SetScript("OnClick", function() xcalc_buttoninput("MC") end)
+    xcalc_button(29,32,15,-108,"MC","MC")
+    
     --Option show button
     local optionbutton = CreateFrame("Button", "xcalc_optionwindow_button",frame,"UIPanelButtonTemplate")
     optionbutton:SetWidth(70)
@@ -310,6 +312,16 @@ function xcalc_windowframe()
     optionbutton:SetScript("OnClick", function() xcalc_optiondisplay() end)
     xcalc_rebind()
     tinsert(UISpecialFrames,"xcalc_window")
+end
+
+function xcalc_button(width, height, x, y, text, cmd)
+	local button = CreateFrame("Button", "xcalc_" .. text, xcalc_window ,"UIPanelButtonTemplate")
+	button:SetWidth(width)
+	button:SetHeight(height)
+	button:SetPoint("TOPLEFT",x,y)
+	button:SetText(text)
+	button:SetScript("OnClick", function() xcalc_buttoninput(cmd) end)
+	
 end
 
 function xcalc_optionframe()
