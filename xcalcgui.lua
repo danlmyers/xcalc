@@ -106,58 +106,33 @@ function xcalc_windowframe()
     exitbutton:SetPoint("TOPRIGHT",-4,-4)
 	exitbutton:SetScript("OnClick", function() xcalc_windowdisplay() end)
 
+	--Main calculator buttons
     xcalc_button(75,29,50,-73,"Backspace","BS")
-
     xcalc_button(41,29,131,-73,"CE","CE")
-
     xcalc_button(41,29,178,-73,"C","CL")
-
     xcalc_button(29,70,190,-183,"=","=")
- 
     xcalc_button(29,32,190,-146,"^","^")
-
     xcalc_button(29,32,190,-108,"+/-","PM")
-
     xcalc_button(29,32,155,-221,"+","+")
-
     xcalc_button(29,32,155,-183,"-","-")
-
     xcalc_button(29,32,155,-145,"*","*")
-
     xcalc_button(29,32,155,-108,"/","/")
-
     xcalc_button(29,32,120,-259,"c","COPPER")
-
     xcalc_button(29,32,85,-259,"s","SILVER")
-
     xcalc_button(29,32,50,-259,"g","GOLD")
-
     xcalc_button(29,32,120,-221,".",".")
-
     xcalc_button(64,32,50,-222,"0","0")
-
-    xcalc_button(29,32,120,-183,"3","3")
-
-    xcalc_button(29,32,85,-183,"2","2")
-
     xcalc_button(29,32,50,-184,"1","1")
-
-    xcalc_button(29,32,120,-146,"6","6")
-
-    xcalc_button(29,32,85,-146,"5","5")
-
+    xcalc_button(29,32,85,-183,"2","2")
+    xcalc_button(29,32,120,-183,"3","3")
     xcalc_button(29,32,50,-146,"4","4")
-
-    xcalc_button(29,32,120,-108,"9","9")
-
-    xcalc_button(29,32,85,-108,"8","8")
-
+    xcalc_button(29,32,85,-146,"5","5")
+    xcalc_button(29,32,120,-146,"6","6")
     xcalc_button(29,32,50,-108,"7","7")
-    
+    xcalc_button(29,32,85,-108,"8","8")
+    xcalc_button(29,32,120,-108,"9","9")
     xcalc_button(29,32,15,-221,"MA","MA")
-
     xcalc_button(29,32,15,-183,"MS","MS")
-
 	xcalc_button(29,32,15,-146,"MR","MR")
     xcalc_button(29,32,15,-108,"MC","MC")
     
@@ -252,6 +227,7 @@ function xcalc_optionframe()
     xcalc_options_minimapsliderText:SetText("Minimap Button Position")
     minimapslider:SetPoint("TOPLEFT",15,-120)
 	minimapslider:SetValue(Xcalc_Settings.Minimappos)
+	tinsert(UISpecialFrames,"xcalc_optionwindow")
 
 end
 
@@ -265,7 +241,14 @@ function xcalc_minimap_init()
         frame:SetNormalTexture("Interface\\AddOns\\xcalc\\xcalc_ButtonRoundNormal.tga")
         frame:SetPushedTexture("Interface\\AddOns\\xcalc\\xcalc_ButtonRoundPushed.tga")
         frame:SetHighlightTexture("Interface/Minimap/UI-Minimap-ZoomButton-Highlight")
-        frame:SetScript("OnClick", function() xcalc_windowdisplay() end)
+        frame:RegisterForClicks("AnyUp")
+        frame:SetScript("OnClick", function(self, button, down) 
+        	if (button == "LeftButton") then
+        		xcalc_windowdisplay()
+        	elseif (button == "RightButton") then
+        		xcalc_optiondisplay()
+        	end
+        end)
         frame:SetScript("OnEnter", function() xcalc_tooltip("minimap") end)
         frame:SetScript("OnLeave", function() xcalc_tooltip("hide") end)
         xcalc_minimapbutton_updateposition()
@@ -273,6 +256,7 @@ function xcalc_minimap_init()
     end
 end
 
+--Minimap button Position
 function xcalc_minimapbutton_updateposition()
 
    xcalc_minimap_button:SetPoint("TOPLEFT", "Minimap", "TOPLEFT",
@@ -280,6 +264,7 @@ function xcalc_minimapbutton_updateposition()
          (78 * sin(Xcalc_Settings.Minimappos)) - 55)
 
 end
+
 
 --Tooltip display
 function xcalc_tooltip(mouseover)
