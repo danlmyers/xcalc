@@ -1,7 +1,7 @@
 ﻿--[[
     Xcalc see version in xcalc.toc.
     author: moird
-    email: peirthies@gmail.com
+    email: dan@moird.com
 
 ]]
 
