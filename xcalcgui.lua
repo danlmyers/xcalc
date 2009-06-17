@@ -227,7 +227,7 @@ function xcalc_optionframe()
     xcalc_options_minimapsliderText:SetText("Minimap Button Position")
     minimapslider:SetPoint("TOPLEFT",15,-120)
 	minimapslider:SetValue(Xcalc_Settings.Minimappos)
-	tinsert(UISpecialFrames,"xcalc_optionwindow")
+	frame:Show()
 
 end
 
