@@ -9,7 +9,16 @@
 local frame,events = CreateFrame("Frame"), {};
 
 function events:ADDON_LOADED(...)
-	xcalc_initialize()
+	if( arg1 == "xcalc") then
+		--Mod Initialization
+		SlashCmdList["XCALC"] = xcalc_command
+		SLASH_XCALC1 = "/xcalc"
+		SLASH_XCALC2 = "/calc"
+		SLASH_XCALC3 = "/="
+	    xcalc_optionvariables()
+	    xcalc_minimap_init()
+	    XCALC_VERSION = GetAddOnMetadata("xcalc", "Version")
+	end
 end
 
 frame:SetScript("OnEvent", function(self, event, ...) events[event](self, ...) end)
@@ -17,18 +26,6 @@ for k, v in pairs(events) do
 	frame:RegisterEvent(k)
 end
 
-
---Initialization stuff
-function xcalc_initialize()
-	-- add our very first chat command!
-	SlashCmdList["XCALC"] = xcalc_command
-	SLASH_XCALC1 = "/xcalc"
-	SLASH_XCALC2 = "/calc"
-	SLASH_XCALC3 = "/="
-    xcalc_optionvariables()
-    xcalc_minimap_init()
-    XCALC_VERSION = GetAddOnMetadata("xcalc", "Version")
-end
 
 --Fuction for setting up Saved Variables
 function xcalc_optionvariables()
