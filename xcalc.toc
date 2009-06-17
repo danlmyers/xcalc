@@ -7,5 +7,7 @@
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
 ## SavedVariablesPerCharacter: Xcalc_Settings
-xcalc.xml
+Localization.lua
+xcalc.lua
+xcalcgui.lua
 Bindings.xml

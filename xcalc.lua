@@ -5,6 +5,18 @@
 
 ]]
 
+--Register to addon load event
+local frame,events = CreateFrame("Frame"), {};
+
+function events:ADDON_LOADED(...)
+	xcalc_initialize()
+end
+
+frame:SetScript("OnEvent", function(self, event, ...) events[event](self, ...) end)
+for k, v in pairs(events) do
+	frame:RegisterEvent(k)
+end
+
 
 --Initialization stuff
 function xcalc_initialize()
