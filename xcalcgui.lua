@@ -1,8 +1,10 @@
 --[[
     This file contains all the GUI instructions.
-    I decided on creating the entire gui via lua instead of xml for several reasons.
-    There is a "LOT" of optimization still to be done in this file I am more interested
-    in generating a base form and set of files to update from.
+    The idea of using lua to do all the drawing makes sense to me
+    even if it is potentially slower than xml to do the same.  Figure
+    that most people are not going to need the calculator to open and
+    run the whatever speed increase is of using xml.  I haven't noticed
+    much difference between loading it via lua vs other mods that use xml
     ]]
 
 
@@ -50,6 +52,88 @@ function xcalc_display(displaynumber, memoryset)
     xcalc_numberdisplay:SetText( displaynumber )
 end
 
+function xcalc_minimap_init()
+    if (Xcalc_Settings.Minimapdisplay == 1) then
+        local frame = CreateFrame("Button","xcalc_minimap_button",Minimap)
+        frame:SetWidth(34)
+        frame:SetHeight(34)
+        frame:SetFrameStrata("LOW")
+        frame:SetToplevel(1)
+        frame:SetNormalTexture("Interface\\AddOns\\xcalc\\xcalc_ButtonRoundNormal.tga")
+        frame:SetPushedTexture("Interface\\AddOns\\xcalc\\xcalc_ButtonRoundPushed.tga")
+        frame:SetHighlightTexture("Interface/Minimap/UI-Minimap-ZoomButton-Highlight")
+        frame:RegisterForClicks("AnyUp")
+        frame:SetScript("OnClick", function(self, button, down) 
+        	if (button == "LeftButton") then
+        		xcalc_windowdisplay()
+        	elseif (button == "RightButton") then
+        		xcalc_optiondisplay()
+        	end
+        end)
+        frame:SetScript("OnEnter", function() xcalc_tooltip("minimap") end)
+        frame:SetScript("OnLeave", function() xcalc_tooltip("hide") end)
+        xcalc_minimapbutton_updateposition()
+        frame:Show()
+    end
+end
+
+--Minimap button Position
+function xcalc_minimapbutton_updateposition()
+
+   xcalc_minimap_button:SetPoint("TOPLEFT", "Minimap", "TOPLEFT",
+         54 - (78 * cos(Xcalc_Settings.Minimappos)),
+         (78 * sin(Xcalc_Settings.Minimappos)) - 55)
+
+end
+
+
+--Tooltip display
+function xcalc_tooltip(mouseover)
+    if ( mouseover == "minimap" ) then
+        GameTooltip:SetOwner(xcalc_minimap_button , "ANCHOR_BOTTOMLEFT")
+        GameTooltip:SetText("Show/Hide xcalc")
+    else
+        GameTooltip : Hide ()
+    end
+end
+
+--Function for handeling Binding checkbox
+function xcalc_options_binding()
+    if (xcalc_options_bindcheckbox:GetChecked() == 1) then
+        Xcalc_Settings.Binding = 1
+    else
+        xcalc_unbind()
+        Xcalc_Settings.Binding = 0
+    end
+end
+
+-- Function for Handeling Minimap Display checkbox
+function xcalc_options_minimapdisplay()
+    if (xcalc_options_minimapcheckbox:GetChecked() == 1) then
+        Xcalc_Settings.Minimapdisplay = 1
+        if (xcalc_minimap_button == nil) then
+            xcalc_minimap_init()
+        else
+            xcalc_minimap_button:Show()
+        end
+    else
+        Xcalc_Settings.Minimapdisplay = 0
+        xcalc_minimap_button:Hide()
+    end
+end
+
+-- Function for managing options slider
+function xcalc_options_minimapslidercontrol()
+	if (Xcalc_Settings.Minimapdisplay == 1) then
+		Xcalc_Settings.Minimappos = xcalc_options_minimapslider:GetValue()
+		xcalc_minimapbutton_updateposition()
+		else
+			xcalc_options_minimapslider:SetValue(Xcalc_Settings.Minimappos)
+			return
+	end
+end
+
+--Draw the main window
 function xcalc_windowframe()
     --Main Window Frame (container) and title bar
     local frame = CreateFrame("Frame","xcalc_window",UIParent)
@@ -157,6 +241,7 @@ function xcalc_button(width, height, x, y, text, cmd)
 	
 end
 
+--Draw the Option window
 function xcalc_optionframe()
     --Options window Frame
     local frame = CreateFrame("Frame","xcalc_optionwindow",xcalc_window)
@@ -231,83 +316,3 @@ function xcalc_optionframe()
 
 end
 
-function xcalc_minimap_init()
-    if (Xcalc_Settings.Minimapdisplay == 1) then
-        local frame = CreateFrame("Button","xcalc_minimap_button",Minimap)
-        frame:SetWidth(34)
-        frame:SetHeight(34)
-        frame:SetFrameStrata("LOW")
-        frame:SetToplevel(1)
-        frame:SetNormalTexture("Interface\\AddOns\\xcalc\\xcalc_ButtonRoundNormal.tga")
-        frame:SetPushedTexture("Interface\\AddOns\\xcalc\\xcalc_ButtonRoundPushed.tga")
-        frame:SetHighlightTexture("Interface/Minimap/UI-Minimap-ZoomButton-Highlight")
-        frame:RegisterForClicks("AnyUp")
-        frame:SetScript("OnClick", function(self, button, down) 
-        	if (button == "LeftButton") then
-        		xcalc_windowdisplay()
-        	elseif (button == "RightButton") then
-        		xcalc_optiondisplay()
-        	end
-        end)
-        frame:SetScript("OnEnter", function() xcalc_tooltip("minimap") end)
-        frame:SetScript("OnLeave", function() xcalc_tooltip("hide") end)
-        xcalc_minimapbutton_updateposition()
-        frame:Show()
-    end
-end
-
---Minimap button Position
-function xcalc_minimapbutton_updateposition()
-
-   xcalc_minimap_button:SetPoint("TOPLEFT", "Minimap", "TOPLEFT",
-         54 - (78 * cos(Xcalc_Settings.Minimappos)),
-         (78 * sin(Xcalc_Settings.Minimappos)) - 55)
-
-end
-
-
---Tooltip display
-function xcalc_tooltip(mouseover)
-    if ( mouseover == "minimap" ) then
-        GameTooltip:SetOwner(xcalc_minimap_button , "ANCHOR_BOTTOMLEFT")
-        GameTooltip:SetText("Show/Hide xcalc")
-    else
-        GameTooltip : Hide ()
-    end
-end
-
---Function for handeling Binding checkbox
-function xcalc_options_binding()
-    if (xcalc_options_bindcheckbox:GetChecked() == 1) then
-        Xcalc_Settings.Binding = 1
-    else
-        xcalc_unbind()
-        Xcalc_Settings.Binding = 0
-    end
-end
-
--- Function for Handeling Minimap Display checkbox
-function xcalc_options_minimapdisplay()
-    if (xcalc_options_minimapcheckbox:GetChecked() == 1) then
-        Xcalc_Settings.Minimapdisplay = 1
-        if (xcalc_minimap_button == nil) then
-            xcalc_minimap_init()
-        else
-            xcalc_minimap_button:Show()
-        end
-    else
-        Xcalc_Settings.Minimapdisplay = 0
-        xcalc_minimap_button:Hide()
-    end
-end
-
--- Function for managing options slider
-function xcalc_options_minimapslidercontrol()
-	if (Xcalc_Settings.Minimapdisplay == 1) then
-		Xcalc_Settings.Minimappos = xcalc_options_minimapslider:GetValue()
-		xcalc_minimapbutton_updateposition()
-		else
-			xcalc_options_minimapslider:SetValue(Xcalc_Settings.Minimappos)
-			return
-	end
-end
