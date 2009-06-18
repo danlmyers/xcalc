@@ -9,22 +9,22 @@
 
 
 --Display Main calculator Window
-function xcalc_windowdisplay()
+function xcalc.windowdisplay()
 	if (xcalc_window == nil) then
-		xcalc_windowframe()
+		xcalc.windowframe()
 		xcalc_window:Show()
 	elseif (xcalc_window:IsVisible()) then
 		xcalc_window:Hide()
     else
         xcalc_window:Show()
-		xcalc_clear()
+		xcalc.clear()
 	end
 end
 
 --Display options window
-function xcalc_optiondisplay()
+function xcalc.optiondisplay()
 	if (xcalc_optionwindow == nil) then
-		xcalc_optionframe()
+		xcalc.optionframe()
 		xcalc_optionwindow:Show()
 	elseif (xcalc_optionwindow:IsVisible()) then
         xcalc_optionwindow:Hide()
@@ -33,14 +33,8 @@ function xcalc_optiondisplay()
 	end
 end
 
---[[---------------------------------------------------------------------
-    Proccess for setting the display in the main xcalc calculator window
-    streamlined the whole process doing it this way so that the function
-    can be called instead of calling both the variable, setting the new
-    variable then passing the settext string to change the display.
-    this also handles the M for memory being displayed on the main window
-    ---------------------------------------------------------------------]]
-function xcalc_display(displaynumber, memoryset)
+
+function xcalc.display(displaynumber, memoryset)
     if ( displaynumber == nil or displaynumber == "" ) then
         displaynumber = "0"
     elseif ( memoryset == "1" ) then
@@ -52,7 +46,7 @@ function xcalc_display(displaynumber, memoryset)
     xcalc_numberdisplay:SetText( displaynumber )
 end
 
-function xcalc_minimap_init()
+function xcalc.minimap_init()
     if (Xcalc_Settings.Minimapdisplay == 1) then
         local frame = CreateFrame("Button","xcalc_minimap_button",Minimap)
         frame:SetWidth(34)
@@ -65,20 +59,20 @@ function xcalc_minimap_init()
         frame:RegisterForClicks("AnyUp")
         frame:SetScript("OnClick", function(self, button, down) 
         	if (button == "LeftButton") then
-        		xcalc_windowdisplay()
+        		xcalc.windowdisplay()
         	elseif (button == "RightButton") then
-        		xcalc_optiondisplay()
+        		xcalc.optiondisplay()
         	end
         end)
-        frame:SetScript("OnEnter", function() xcalc_tooltip("minimap") end)
-        frame:SetScript("OnLeave", function() xcalc_tooltip("hide") end)
-        xcalc_minimapbutton_updateposition()
+        frame:SetScript("OnEnter", function() xcalc.tooltip("minimap") end)
+        frame:SetScript("OnLeave", function() xcalc.tooltip("hide") end)
+        xcalc.minimapbutton_updateposition()
         frame:Show()
     end
 end
 
 --Minimap button Position
-function xcalc_minimapbutton_updateposition()
+function xcalc.minimapbutton_updateposition()
 
    xcalc_minimap_button:SetPoint("TOPLEFT", "Minimap", "TOPLEFT",
          54 - (78 * cos(Xcalc_Settings.Minimappos)),
@@ -88,7 +82,7 @@ end
 
 
 --Tooltip display
-function xcalc_tooltip(mouseover)
+function xcalc.tooltip(mouseover)
     if ( mouseover == "minimap" ) then
         GameTooltip:SetOwner(xcalc_minimap_button , "ANCHOR_BOTTOMLEFT")
         GameTooltip:SetText("Show/Hide xcalc")
@@ -98,21 +92,21 @@ function xcalc_tooltip(mouseover)
 end
 
 --Function for handeling Binding checkbox
-function xcalc_options_binding()
+function xcalc.options_binding()
     if (xcalc_options_bindcheckbox:GetChecked() == 1) then
         Xcalc_Settings.Binding = 1
     else
-        xcalc_unbind()
+        xcalc.unbind()
         Xcalc_Settings.Binding = 0
     end
 end
 
 -- Function for Handeling Minimap Display checkbox
-function xcalc_options_minimapdisplay()
+function xcalc.options_minimapdisplay()
     if (xcalc_options_minimapcheckbox:GetChecked() == 1) then
         Xcalc_Settings.Minimapdisplay = 1
         if (xcalc_minimap_button == nil) then
-            xcalc_minimap_init()
+            xcalc.minimap_init()
         else
             xcalc_minimap_button:Show()
         end
@@ -123,10 +117,10 @@ function xcalc_options_minimapdisplay()
 end
 
 -- Function for managing options slider
-function xcalc_options_minimapslidercontrol()
+function xcalc.options_minimapslidercontrol()
 	if (Xcalc_Settings.Minimapdisplay == 1) then
 		Xcalc_Settings.Minimappos = xcalc_options_minimapslider:GetValue()
-		xcalc_minimapbutton_updateposition()
+		xcalc.minimapbutton_updateposition()
 		else
 			xcalc_options_minimapslider:SetValue(Xcalc_Settings.Minimappos)
 			return
@@ -134,7 +128,7 @@ function xcalc_options_minimapslidercontrol()
 end
 
 --Draw the main window
-function xcalc_windowframe()
+function xcalc.windowframe()
     --Main Window Frame (container) and title bar
     local frame = CreateFrame("Frame","xcalc_window",UIParent)
     frame:SetFrameStrata("HIGH")
@@ -145,8 +139,8 @@ function xcalc_windowframe()
     frame:SetWidth(240)
     frame:SetScript("OnMouseDown", function() frame:StartMoving() end)
     frame:SetScript("OnMouseUp", function() frame:StopMovingOrSizing() end)
-    frame:SetScript("OnShow", function() xcalc_rebind() end)
-    frame:SetScript("OnHide", function() xcalc_unbind() end)
+    frame:SetScript("OnShow", function() xcalc.rebind() end)
+    frame:SetScript("OnHide", function() xcalc.unbind() end)
     frame:SetBackdrop({bgFile = "Interface/DialogFrame/UI-DialogBox-Background",
                         edgeFile = "Interface/DialogFrame/UI-DialogBox-Border",
                         tile = true, tileSize = 32, edgeSize = 32,
@@ -188,37 +182,37 @@ function xcalc_windowframe()
     --ExitButton
     local exitbutton = CreateFrame("Button", "xcalc_exitbutton",frame,"UIPanelCloseButton")
     exitbutton:SetPoint("TOPRIGHT",-4,-4)
-	exitbutton:SetScript("OnClick", function() xcalc_windowdisplay() end)
+	exitbutton:SetScript("OnClick", function() xcalc.windowdisplay() end)
 
 	--Main calculator buttons
-    xcalc_button(75,29,50,-73,"Backspace","BS")
-    xcalc_button(41,29,131,-73,"CE","CE")
-    xcalc_button(41,29,178,-73,"C","CL")
-    xcalc_button(29,70,190,-183,"=","=")
-    xcalc_button(29,32,190,-146,"^","^")
-    xcalc_button(29,32,190,-108,"+/-","PM")
-    xcalc_button(29,32,155,-221,"+","+")
-    xcalc_button(29,32,155,-183,"-","-")
-    xcalc_button(29,32,155,-145,"*","*")
-    xcalc_button(29,32,155,-108,"/","/")
-    xcalc_button(29,32,120,-259,"c","COPPER")
-    xcalc_button(29,32,85,-259,"s","SILVER")
-    xcalc_button(29,32,50,-259,"g","GOLD")
-    xcalc_button(29,32,120,-221,".",".")
-    xcalc_button(64,32,50,-222,"0","0")
-    xcalc_button(29,32,50,-184,"1","1")
-    xcalc_button(29,32,85,-183,"2","2")
-    xcalc_button(29,32,120,-183,"3","3")
-    xcalc_button(29,32,50,-146,"4","4")
-    xcalc_button(29,32,85,-146,"5","5")
-    xcalc_button(29,32,120,-146,"6","6")
-    xcalc_button(29,32,50,-108,"7","7")
-    xcalc_button(29,32,85,-108,"8","8")
-    xcalc_button(29,32,120,-108,"9","9")
-    xcalc_button(29,32,15,-221,"MA","MA")
-    xcalc_button(29,32,15,-183,"MS","MS")
-	xcalc_button(29,32,15,-146,"MR","MR")
-    xcalc_button(29,32,15,-108,"MC","MC")
+    xcalc.button(75,29,50,-73,"Backspace","BS")
+    xcalc.button(41,29,131,-73,"CE","CE")
+    xcalc.button(41,29,178,-73,"C","CL")
+    xcalc.button(29,70,190,-183,"=","=")
+    xcalc.button(29,32,190,-146,"^","^")
+    xcalc.button(29,32,190,-108,"+/-","PM")
+    xcalc.button(29,32,155,-221,"+","+")
+    xcalc.button(29,32,155,-183,"-","-")
+    xcalc.button(29,32,155,-145,"*","*")
+    xcalc.button(29,32,155,-108,"/","/")
+    xcalc.button(29,32,120,-259,"c","COPPER")
+    xcalc.button(29,32,85,-259,"s","SILVER")
+    xcalc.button(29,32,50,-259,"g","GOLD")
+    xcalc.button(29,32,120,-221,".",".")
+    xcalc.button(64,32,50,-222,"0","0")
+    xcalc.button(29,32,50,-184,"1","1")
+    xcalc.button(29,32,85,-183,"2","2")
+    xcalc.button(29,32,120,-183,"3","3")
+    xcalc.button(29,32,50,-146,"4","4")
+    xcalc.button(29,32,85,-146,"5","5")
+    xcalc.button(29,32,120,-146,"6","6")
+    xcalc.button(29,32,50,-108,"7","7")
+    xcalc.button(29,32,85,-108,"8","8")
+    xcalc.button(29,32,120,-108,"9","9")
+    xcalc.button(29,32,15,-221,"MA","MA")
+    xcalc.button(29,32,15,-183,"MS","MS")
+	xcalc.button(29,32,15,-146,"MR","MR")
+    xcalc.button(29,32,15,-108,"MC","MC")
     
     --Option show button
     local optionbutton = CreateFrame("Button", "xcalc_optionwindow_button",frame,"UIPanelButtonTemplate")
@@ -226,25 +220,25 @@ function xcalc_windowframe()
     optionbutton:SetHeight(25)
     optionbutton:SetPoint("BOTTOMRIGHT",-15,15)
     optionbutton:SetText("Options")
-    optionbutton:SetScript("OnClick", function() xcalc_optiondisplay() end)
-    xcalc_rebind()
+    optionbutton:SetScript("OnClick", function() xcalc.optiondisplay() end)
+    xcalc.rebind()
     tinsert(UISpecialFrames,"xcalc_window")
 end
 
-function xcalc_button(width, height, x, y, text, cmd)
-	local button = CreateFrame("Button", "xcalc_" .. text, xcalc_window ,"UIPanelButtonTemplate")
+function xcalc.button(width, height, x, y, text, cmd)
+	local button = CreateFrame("Button", "xcalc." .. text, xcalc_window ,"UIPanelButtonTemplate")
 	button:SetWidth(width)
 	button:SetHeight(height)
 	button:SetPoint("TOPLEFT",x,y)
 	button:SetText(text)
-	button:SetScript("OnClick", function() xcalc_buttoninput(cmd) end)
+	button:SetScript("OnClick", function() xcalc.buttoninput(cmd) end)
 	
 end
 
 --Draw the Option window
-function xcalc_optionframe()
+function xcalc.optionframe()
     --Options window Frame
-    local frame = CreateFrame("Frame","xcalc_optionwindow",xcalc_window)
+    local frame = CreateFrame("Frame","xcalc_optionwindow",UIParent)
     frame:SetFrameStrata("HIGH")
     frame:EnableMouse(true)
     frame:SetWidth(220)
@@ -273,12 +267,12 @@ function xcalc_optionframe()
     okaybutton:SetHeight(29)
     okaybutton:SetPoint("BOTTOM",0,20)
     okaybutton:SetText("Okay")
-    okaybutton:SetScript("OnClick", function() xcalc_optiondisplay() end)
+    okaybutton:SetScript("OnClick", function() xcalc.optiondisplay() end)
     --Binding Check box
     local bindingcheckbox = CreateFrame("CheckButton","xcalc_options_bindcheckbox",frame,"OptionsCheckButtonTemplate")
     bindingcheckbox:SetPoint("TOPLEFT",15,-40)
     bindingcheckbox:SetChecked(Xcalc_Settings.Binding)
-    bindingcheckbox:SetScript("OnClick", function() xcalc_options_binding() end)
+    bindingcheckbox:SetScript("OnClick", function() xcalc.options_binding() end)
     local bindingcheckboxtext = frame:CreateFontString("xcalc_options_bindcheckboxtext")
     bindingcheckboxtext:SetWidth(200)
     bindingcheckboxtext:SetHeight(0)
@@ -291,7 +285,7 @@ function xcalc_optionframe()
     local minimapcheckbox = CreateFrame("CheckButton","xcalc_options_minimapcheckbox",frame,"OptionsCheckButtonTemplate")
     minimapcheckbox:SetPoint("TOPLEFT",15,-70)
     minimapcheckbox:SetChecked(Xcalc_Settings.Minimapdisplay)
-    minimapcheckbox:SetScript("OnClick", function() xcalc_options_minimapdisplay() end)
+    minimapcheckbox:SetScript("OnClick", function() xcalc.options_minimapdisplay() end)
     local minimapcheckboxtext = minimapcheckbox:CreateFontString("xcalc_options_minimapcheckboxtext")
     minimapcheckboxtext:SetWidth(200)
     minimapcheckboxtext:SetHeight(0)
@@ -306,13 +300,12 @@ function xcalc_optionframe()
     minimapslider:SetHeight(16)
     minimapslider:SetMinMaxValues(0, 360)
     minimapslider:SetValueStep(1)
-	minimapslider:SetScript("OnValueChanged", function() xcalc_options_minimapslidercontrol() end)
+	minimapslider:SetScript("OnValueChanged", function() xcalc.options_minimapslidercontrol() end)
 	xcalc_options_minimapsliderHigh:SetText()
     xcalc_options_minimapsliderLow:SetText()
     xcalc_options_minimapsliderText:SetText("Minimap Button Position")
     minimapslider:SetPoint("TOPLEFT",15,-120)
 	minimapslider:SetValue(Xcalc_Settings.Minimappos)
-	frame:Show()
 
 end
 

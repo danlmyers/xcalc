@@ -5,30 +5,36 @@
 
 ]]
 
---Register to addon load event
-local frame,events = CreateFrame("Frame"), {};
+--Sudo General Namespaces
+xcalc = {}
+xcalc.events = {}
 
-function events:ADDON_LOADED(...)
+
+--Register to addon load event
+local frame = CreateFrame("Frame")
+
+--Main Initialization
+function xcalc.events:ADDON_LOADED(...)
 	if( arg1 == "xcalc") then
 		--Mod Initialization
-		SlashCmdList["XCALC"] = xcalc_command
+		SlashCmdList["XCALC"] = xcalc.cmdline
 		SLASH_XCALC1 = "/xcalc"
 		SLASH_XCALC2 = "/calc"
 		SLASH_XCALC3 = "/="
-	    xcalc_optionvariables()
-	    xcalc_minimap_init()
+	    xcalc.optionvariables()
+	    xcalc.minimap_init()
 	    XCALC_VERSION = GetAddOnMetadata("xcalc", "Version")
 	end
 end
 
-frame:SetScript("OnEvent", function(self, event, ...) events[event](self, ...) end)
-for k, v in pairs(events) do
+frame:SetScript("OnEvent", function(self, event, ...) xcalc.events[event](self, ...) end)
+for k, v in pairs(xcalc.events) do
 	frame:RegisterEvent(k)
 end
 
 
 --Fuction for setting up Saved Variables
-function xcalc_optionvariables()
+function xcalc.optionvariables()
     if (Xcalc_Settings.Binding == nil) then
         Xcalc_Settings.Binding = 1
     end
@@ -41,26 +47,26 @@ function xcalc_optionvariables()
 end
 
 --[[--------------------------------------------------------------------
-    Function for adding Debug messages via xcalc_debug("message") call
+    Function for adding Debug messages via xcalc.debug("message") call
     
     --------------------------------------------------------------------]]
-function xcalc_debug(debugmsg)
-    ChatFrame1:AddMessage("xcalc_debug: " .. debugmsg)
+function xcalc.debug(debugmsg)
+    ChatFrame1:AddMessage("xcalc.debug: " .. debugmsg)
 end
 
 --Function for handling the chat slash commands
-function xcalc_command(msg)
+function xcalc.cmdline(msg)
 	-- this function handles our chat command
 	if (msg == nil or msg == "") then
-		xcalc_windowdisplay()
+		xcalc.windowdisplay()
 		return nil
 	end
 
 	local expression = msg
 
-	newexpression = xcalc_parse(expression)
+	newexpression = xcalc.parse(expression)
 
-	local result = xcalc_xcalculate(newexpression)
+	local result = xcalc.xcalculate(newexpression)
 
 	if ( result == nil ) then
 		result = 'nil'
@@ -73,7 +79,7 @@ function xcalc_command(msg)
 end
 
 --Processes for binding and unbinding numberpad keys to Xcalc
-function xcalc_rebind()
+function xcalc.rebind()
     if (Xcalc_Settings.Binding == 1) then
     	for key,value in pairs(XCALC_BINDINGMAP) do
     		XCALC_REMAPBINDINGS[key] = GetBindingAction(key)
@@ -84,7 +90,7 @@ function xcalc_rebind()
     end
 end
 
-function xcalc_unbind()
+function xcalc.unbind()
     if (Xcalc_Settings.Binding == 1) then
         for key,value in pairs(XCALC_REMAPBINDINGS) do
         	SetBinding(key, value)
@@ -93,51 +99,51 @@ function xcalc_unbind()
 end
 
 --Handle Key Inputs
-function xcalc_buttoninput(key)
+function xcalc.buttoninput(key)
 	if ( key == "CL" ) then
-		xcalc_clear()
+		xcalc.clear()
 	elseif ( key == "CE") then
-		xcalc_ce()
+		xcalc.ce()
 	elseif ( key == "PM" ) then
-		xcalc_plusminus()
+		xcalc.plusminus()
 	elseif ( key == "GOLD" ) then
-		xcalc_stategold()
+		xcalc.stategold()
 	elseif ( key == "SILVER" ) then
-		xcalc_statesilver()
+		xcalc.statesilver()
 	elseif ( key == "COPPER" ) then
-		xcalc_statecopper()
+		xcalc.statecopper()
 	elseif ( key == "MC" ) then
-		xcalc_mc()
+		xcalc.mc()
 	elseif ( key == "MA" ) then
-		xcalc_ma()
+		xcalc.ma()
 	elseif ( key == "MS" ) then
-		xcalc_ms()
+		xcalc.ms()
 	elseif ( key == "MR" ) then
-		xcalc_mr()
+		xcalc.mr()
 	elseif ( key == "BS" ) then
-		xcalc_backspace()
+		xcalc.backspace()
 	elseif (key == "=" or key == "/" or key == "*" or key == "-" or key == "-" or key == "+" or key == "^") then
-		xcalc_funckey(key)
+		xcalc.funckey(key)
 	else
-		xcalc_numkey(key)
+		xcalc.numkey(key)
 	end
 end
 
 --Button Clear
-function xcalc_clear()
+function xcalc.clear()
     XCALC_RUNNINGTOTAL = ""
     XCALC_PREVIOUSKEYTYPE = "none"
     XCALC_PREVIOUSOP = ""
-    xcalc_display("0")
+    xcalc.display("0")
 end
 
 --Button CE
-function xcalc_ce()
-    xcalc_display("0")
+function xcalc.ce()
+    xcalc.display("0")
 end
 
 --Button Backspace
-function xcalc_backspace()
+function xcalc.backspace()
     local currText = XCALC_NUMBERDISPLAY
     if (currText == "0") then
         return
@@ -148,15 +154,15 @@ function xcalc_backspace()
         end
         currText = string.sub(currText,0,length)
         if (string.len(currText) < 1) then
-            xcalc_display("0")
+            xcalc.display("0")
         else
-            xcalc_display(currText)
+            xcalc.display(currText)
         end
     end
 end
 
 --Button Plus Minus Key
-function xcalc_plusminus()
+function xcalc.plusminus()
     local currText = XCALC_NUMBERDISPLAY
     if (currText ~= "0") then
 		if (string.find(currText, "-")) then
@@ -166,67 +172,67 @@ function xcalc_plusminus()
 		end
 	end
     XCALC_PREVIOUSKEYTYPE = "state"
-    xcalc_display(currText)
+    xcalc.display(currText)
 end
 
 --Button Gold (state)
-function xcalc_stategold()
+function xcalc.stategold()
     local currText = XCALC_NUMBERDISPLAY
 	if (string.find(currText, "[csg]") == nil) then
 		currText = currText .. "g"
 	end
     XCALC_PREVIOUSKEYTYPE = "state"
-    xcalc_display(currText)
+    xcalc.display(currText)
 end
 
 --Button Silver (state)
-function xcalc_statesilver()
+function xcalc.statesilver()
     local currText = XCALC_NUMBERDISPLAY
 	if (string.find(currText, "[cs]") == nil) then
 		currText = currText .. "s"
 	end
     XCALC_PREVIOUSKEYTYPE = "state"
-    xcalc_display(currText)
+    xcalc.display(currText)
 end
 
 --Button Copper (state)
-function xcalc_statecopper()
+function xcalc.statecopper()
     local currText = XCALC_NUMBERDISPLAY
 	if (string.find(currText, "c") == nil) then
 		currText = currText .. "c"
 	end
     XCALC_PREVIOUSKEYTYPE = "state"
-    xcalc_display(currText)
+    xcalc.display(currText)
 end
 
 --Button Memory Clear
-function xcalc_mc()
+function xcalc.mc()
     XCALC_MEMORYNUMBER = "0"
-    xcalc_display(XCALC_NUMBERDISPLAY, "0")
+    xcalc.display(XCALC_NUMBERDISPLAY, "0")
 end
 
 --Button Memory Add
-function xcalc_ma()
-    temp = xcalc_parse(XCALC_MEMORYNUMBER .. "+" .. XCALC_NUMBERDISPLAY)
-    XCALC_MEMORYNUMBER = xcalc_xcalculate(temp)
-    xcalc_display("0","1")
-    xcalc_clear()
+function xcalc.ma()
+    temp = xcalc.parse(XCALC_MEMORYNUMBER .. "+" .. XCALC_NUMBERDISPLAY)
+    XCALC_MEMORYNUMBER = xcalc.xcalculate(temp)
+    xcalc.display("0","1")
+    xcalc.clear()
 end
 
 --Button Memory Store
-function xcalc_ms()
-    XCALC_MEMORYNUMBER = xcalc_parse(XCALC_NUMBERDISPLAY)
-    xcalc_display("0","1")
-    xcalc_clear()
+function xcalc.ms()
+    XCALC_MEMORYNUMBER = xcalc.parse(XCALC_NUMBERDISPLAY)
+    xcalc.display("0","1")
+    xcalc.clear()
 end
 
 --Button Memory Recall
-function xcalc_mr()
-    xcalc_display(XCALC_MEMORYNUMBER)
+function xcalc.mr()
+    xcalc.display(XCALC_MEMORYNUMBER)
 end
 
 --Sets up the function keys ie, + - * / =
-function xcalc_funckey(key)
+function xcalc.funckey(key)
 	local currText = XCALC_NUMBERDISPLAY
     if ( IsShiftKeyDown() and key == "=" ) then
         ChatFrame_OpenChat("")
@@ -236,15 +242,15 @@ function xcalc_funckey(key)
 			if (key == "/" or key == "*" or key == "-" or key == "-" or key == "+" or key == "^") then
 					
 				if (XCALC_PREVIOUSOP~="" and XCALC_PREVIOUSOP ~= "=") then
-					temp = xcalc_parse(XCALC_RUNNINGTOTAL .. XCALC_PREVIOUSOP .. currText)
-					currText = xcalc_xcalculate(temp)
+					temp = xcalc.parse(XCALC_RUNNINGTOTAL .. XCALC_PREVIOUSOP .. currText)
+					currText = xcalc.xcalculate(temp)
 				end
 				XCALC_RUNNINGTOTAL = currText
 				XCALC_PREVIOUSOP = key
 			elseif (key == "=") then
 				if XCALC_PREVIOUSOP ~= "=" and  XCALC_PREVIOUSOP ~= "" then
-					temp = xcalc_parse(XCALC_RUNNINGTOTAL .. XCALC_PREVIOUSOP .. currText)
-					currText = xcalc_xcalculate(temp)
+					temp = xcalc.parse(XCALC_RUNNINGTOTAL .. XCALC_PREVIOUSOP .. currText)
+					currText = xcalc.xcalculate(temp)
 					XCALC_RUNNINGTOTAL = currText
 					XCALC_PREVIOUSOP="="
 				end
@@ -258,11 +264,11 @@ function xcalc_funckey(key)
 		end 
 	end
 	XCALC_PREVIOUSKEYTYPE = "func"
-	xcalc_display(currText)
+	xcalc.display(currText)
 end
 
 --Manage Number Inputs
-function xcalc_numkey(key)
+function xcalc.numkey(key)
 	local currText = XCALC_NUMBERDISPLAY
 	
 	if (XCALC_PREVIOUSKEYTYPE=="none" or XCALC_PREVIOUSKEYTYPE=="num" or XCALC_PREVIOUSKEYTYPE=="state")then
@@ -286,11 +292,11 @@ function xcalc_numkey(key)
 	end
 
 	XCALC_PREVIOUSKEYTYPE = "num"
-    xcalc_display(currText)
+    xcalc.display(currText)
 end
 
 --Send the number display to an open chatbox
-function xcalc_numberdisplay_click(button, ignoreShift)
+function xcalc.numberdisplay_click(button, ignoreShift)
 	if ( button == "LeftButton" ) then
 		if ( IsShiftKeyDown() and not ignoreShift ) then
 			if ( ChatFrameEditBox:IsVisible() ) then
@@ -306,7 +312,7 @@ end
     On a side note, Simple is easier, getting into complex if/then/elseif/else statements
     to perform math functions may introduce unexpected results... maybe.
     -----------------------------------------------------------------------------------]]
-function xcalc_xcalculate(expression)
+function xcalc.xcalculate(expression)
 	local tempvar = "QCExpVal"
 
 	setglobal(tempvar, nil)
@@ -317,7 +323,7 @@ function xcalc_xcalculate(expression)
 end
 
 --This function parses the input for the money functions
-function xcalc_parse(expression)
+function xcalc.parse(expression)
 	local ismoney = false
 
 	newexpression = expression
