@@ -51,7 +51,7 @@ end
     
     --------------------------------------------------------------------]]
 function xcalc.debug(debugmsg)
-    ChatFrame1:AddMessage("xcalc.debug: " .. debugmsg)
+    ChatFrame1:AddMessage("xcalc_debug: " .. debugmsg)
 end
 
 --Function for handling the chat slash commands
@@ -333,56 +333,56 @@ function xcalc.parse(expression)
 	-- g s c
 	local newexpression = string.gsub(newexpression, "%d+g%d+s%d+c", function (a)
 			ismoney = true
-			return FromGSC(a)
+			return xcalc.FromGSC(a)
 		end )
 
 	-- g s
 	local newexpression = string.gsub(newexpression, "%d+g%d+s", function (a)
 			ismoney = true
-			return FromGSC(a)
+			return xcalc.FromGSC(a)
 		end )
 
 
 	-- g   c
 	local newexpression = string.gsub(newexpression, "%d+g%d+c", function (a)
 			ismoney = true
-			return FromGSC(a)
+			return xcalc.FromGSC(a)
 		end )
 
 	-- g         allows #.#
 	local newexpression = string.gsub(newexpression, "%d+%.?%d*g", function (a)
 			ismoney = true
-			return FromGSC(a)
+			return xcalc.FromGSC(a)
 		end )
 
 	--   s c
 	local newexpression = string.gsub(newexpression, "%d+s%d+c", function (a)
 			ismoney = true
-			return FromGSC(a)
+			return xcalc.FromGSC(a)
 		end )
 
 	--   s       allows #.#
 	local newexpression = string.gsub(newexpression, "%d+%.?%d*s", function (a)
 			ismoney = true
-			return FromGSC(a)
+			return xcalc.FromGSC(a)
 		end )
 
 	--     c
 	local newexpression = string.gsub(newexpression, "%d+c", function (a)
 			ismoney = true
-			return FromGSC(a)
+			return xcalc.FromGSC(a)
 		end )
 
 
 	if (ismoney) then
-		newexpression = "ToGSC(" .. newexpression .. ")"
+		newexpression = "xcalc.ToGSC(" .. newexpression .. ")"
 	end
 
 	return newexpression
 end
 
 --The following two functions do the to and from gold calculations
-function ToGSC(decimal, std)
+function xcalc.ToGSC(decimal, std)
 	local gold = 0
 	local silver = 0
 	local copper = 0
@@ -432,7 +432,7 @@ function ToGSC(decimal, std)
 	return temp
 end
 
-function FromGSC(gold, silver, copper)
+function xcalc.FromGSC(gold, silver, copper)
 	if (gold == nil) then
 		return ""
 	end
