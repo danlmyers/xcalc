@@ -2,6 +2,7 @@
     Xcalc see version in xcalc.toc.
     author: moird
     email: dan@moird.com
+    web: http://moird.com
 
 ]]
 
@@ -86,7 +87,7 @@ end
     
     --------------------------------------------------------------------]]
 function xcalc.debug(debugmsg)
-    ChatFrame1:AddMessage("xcalc_debug: " .. debugmsg)
+    ChatFrame1:AddMessage("xcalc debug: " .. debugmsg)
 end
 
 --Function for handling the chat slash commands
