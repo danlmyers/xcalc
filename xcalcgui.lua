@@ -38,11 +38,11 @@ function xcalc.display(displaynumber, memoryset)
     if ( displaynumber == nil or displaynumber == "" ) then
         displaynumber = "0"
     elseif ( memoryset == "1" ) then
-        xcalc_memorydisplay:SetText ( XCALC_MEMORYINDICATORON )
+        xcalc_memorydisplay:SetText ( xcalc.MemoryIndicatorON )
     elseif ( memoryset == "0" ) then
-        xcalc_memorydisplay:SetText( XCALC_MEMORYINDICATOR )
+        xcalc_memorydisplay:SetText( xcalc.MemoryIndicator )
     end
-    XCALC_NUMBERDISPLAY = displaynumber
+    xcalc.NumberDisplay = displaynumber
     xcalc_numberdisplay:SetText( displaynumber )
 end
 
@@ -171,7 +171,7 @@ function xcalc.windowframe()
     numberdisplay:SetFont("Fonts/FRIZQT__.TTF",12)
     numberdisplay:SetJustifyH("RIGHT")
     numberdisplay:SetPoint("TOPLEFT",10,-33)
-    numberdisplay:SetText(XCALC_NUMBERDISPLAY)
+    numberdisplay:SetText(xcalc.NumberDisplay)
     --Memory Display
     local memorydisplay = frame:CreateFontString("xcalc_memorydisplay","GameFontNormal")
     memorydisplay:SetWidth(29)

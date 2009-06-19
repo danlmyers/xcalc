@@ -1,66 +1,66 @@
 ﻿<Bindings>
-	 <Binding name="XC_TOGGLEWINDOW" description="Toggle Xcalc" header="XCALC">
+	 <Binding name="XC_TOGGLEWINDOW" header="XCALC">
 	 		xcalc.windowdisplay();
 	 </Binding>
 	 
-     <Binding name="XC_NUMLOCK" description="Numlock" header="XCALC_AUTOMATIC">
+     <Binding name="XC_NUMLOCK" header="XCALC_AUTOMATIC">
           
      </Binding>
-     <Binding name="XC_CLEAR" description="Clear">
+     <Binding name="XC_CLEAR">
           xcalc.buttoninput("CL");
      </Binding>
-     <Binding name="XC_BACKSPACE" description="Backspace">
+     <Binding name="XC_BACKSPACE">
      	  xcalc.buttoninput("BS")
      </Binding>
 
-     <Binding name="XC_DIV" description="Divide">
+     <Binding name="XC_DIV">
           xcalc.buttoninput("/");
      </Binding>
-     <Binding name="XC_MUL" description="Multiply">
+     <Binding name="XC_MUL">
           xcalc.buttoninput("*");
      </Binding>
-     <Binding name="XC_SUB" description="Subtract">
+     <Binding name="XC_SUB">
           xcalc.buttoninput("-");
      </Binding>
-     <Binding name="XC_ADD" description="Add">
+     <Binding name="XC_ADD">
           xcalc.buttoninput("+");
      </Binding>
-     <Binding name="XC_EQ" description="Equals">
+     <Binding name="XC_EQ">
           xcalc.buttoninput("=");
      </Binding>
      
-     <Binding name="XC_0" description="Digit 0">
+     <Binding name="XC_0">
           xcalc.buttoninput("0");
      </Binding>
-     <Binding name="XC_1" description="Digit 1">
+     <Binding name="XC_1">
           xcalc.buttoninput("1");
      </Binding>
-     <Binding name="XC_2" description="Digit 2">
+     <Binding name="XC_2">
           xcalc.buttoninput("2");
      </Binding>
-     <Binding name="XC_3" description="Digit 3">
+     <Binding name="XC_3">
           xcalc.buttoninput("3");
      </Binding>
-     <Binding name="XC_4" description="Digit 4">
+     <Binding name="XC_4">
           xcalc.buttoninput("4");
      </Binding>
-     <Binding name="XC_5" description="Digit 5">
+     <Binding name="XC_5">
           xcalc.buttoninput("5");
      </Binding>
-     <Binding name="XC_6" description="Digit 6">
+     <Binding name="XC_6">
           xcalc.buttoninput("6");
      </Binding>
-     <Binding name="XC_7" description="Digit 7">
+     <Binding name="XC_7">
           xcalc.buttoninput("7");
      </Binding>
-     <Binding name="XC_8" description="Digit 8">
+     <Binding name="XC_8">
           xcalc.buttoninput("8");
      </Binding>
-     <Binding name="XC_9" description="Digit 9">
+     <Binding name="XC_9">
           xcalc.buttoninput("9");
      </Binding>
 
-     <Binding name="XC_DEC" description="Decimal">
+     <Binding name="XC_DEC">
           xcalc.buttoninput(".");
      </Binding>
 </Bindings>
