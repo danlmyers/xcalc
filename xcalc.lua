@@ -50,7 +50,7 @@ xcalc.BindingMap = {
 local frame = CreateFrame("Frame")
 
 --Main Initialization
-function xcalc.events:ADDON_LOADED(...)
+function xcalc.events:ADDON_LOADED(arg1, ...)
 	if( arg1 == "xcalc") then
 		--Mod Initialization
 		SlashCmdList["XCALC"] = xcalc.cmdline
