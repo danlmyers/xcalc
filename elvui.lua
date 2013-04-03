@@ -15,9 +15,13 @@ event:RegisterEvent("PLAYER_LOGIN")
 event.PLAYER_LOGIN = function(...)
 	if IsAddOnLoaded(NAME) then
 		event.ADDON_LOADED(NAME)
+	else
+		event:RegisterEvent("ADDON_LOADED")
 	end
 	if IsAddOnLoaded("ElvUI") then
 		event.ADDON_LOADED("ElvUI")
+	else
+		event:RegisterEvent("ADDON_LOADED")
 	end
 end
 
