@@ -9,8 +9,8 @@ local NAME, xcalc = ...
 
 -- Sudo General Namespaces and globals
 xcalc.events = {}
-Xcalc_Settings = { }
-xcalc.RemapBindings = { }
+Xcalc_Settings = {}
+xcalc.BindingMap = {}
 
 xcalc.NumberDisplay = "0"
 xcalc.RunningTotal = ""
@@ -23,31 +23,36 @@ xcalc.MemoryIndicatorON = "M"
 xcalc.MemoryNumber = "0"
 xcalc.MemorySet = "0"
 
-xcalc.BindingMap = {
-	NUMLOCK = "XC_NUMLOCK",
-	HOME = "XC_CLEAR",
-	BACKSPACE = "XC_BACKSPACE",
-	NUMPADDIVIDE = "XC_DIV",
-	NUMPADMULTIPLY = "XC_MUL",
-	NUMPADMINUS = "XC_SUB",
-	NUMPADPLUS = "XC_ADD",
-	ENTER = "XC_EQ",
-	NUMPAD0 = "XC_0",
-	NUMPAD1 = "XC_1",
-	NUMPAD2 = "XC_2",
-	NUMPAD3 = "XC_3",
-	NUMPAD4 = "XC_4",
-	NUMPAD5 = "XC_5",
-	NUMPAD6 = "XC_6",
-	NUMPAD7 = "XC_7",
-	NUMPAD8 = "XC_8",
-	NUMPAD9 = "XC_9",
-	NUMPADDECIMAL = "XC_DEC"
-	}
+if (IsMacClient()) then
+	xcalc.BindingMap.NUMLOCK_MAC = "XC_NUMLOCK"
+	xcalc.BindingMap.BACKSPACE_MAC = "XC_BACKSPACE"
+	xcalc.BindingMap.ENTER_MAC = "XC_EQ"
+else
+	xcalc.BindingMap.NUMLOCK = "XC_NUMLOCK"
+	xcalc.BindingMap.BACKSPACE = "XC_BACKSPACE"
+	xcalc.BindingMap.ENTER = "XC_EQ"
+end
+xcalc.BindingMap.HOME = "XC_CLEAR"
+xcalc.BindingMap.NUMPADDIVIDE = "XC_DIV"
+xcalc.BindingMap.NUMPADMULTIPLY = "XC_MUL"
+xcalc.BindingMap.NUMPADMINUS = "XC_SUB"
+xcalc.BindingMap.NUMPADPLUS = "XC_ADD"
+xcalc.BindingMap.NUMPAD0 = "XC_0"
+xcalc.BindingMap.NUMPAD1 = "XC_1"
+xcalc.BindingMap.NUMPAD2 = "XC_2"
+xcalc.BindingMap.NUMPAD3 = "XC_3"
+xcalc.BindingMap.NUMPAD4 = "XC_4"
+xcalc.BindingMap.NUMPAD5 = "XC_5"
+xcalc.BindingMap.NUMPAD6 = "XC_6"
+xcalc.BindingMap.NUMPAD7 = "XC_7"
+xcalc.BindingMap.NUMPAD8 = "XC_8"
+xcalc.BindingMap.NUMPAD9 = "XC_9"
+xcalc.BindingMap.NUMPADDECIMAL = "XC_DEC"
 
 
 -- Register to addon load event
 local frame = CreateFrame("Frame")
+local overrideOn
 
 -- Main Initialization
 function xcalc.events:ADDON_LOADED(arg1, ...)
@@ -64,6 +69,22 @@ function xcalc.events:ADDON_LOADED(arg1, ...)
 	end
 end
 
+function xcalc.events:PLAYER_REGEN_ENABLED()
+	if Xcalc_Settings.Binding and Xcalc_Settings.Binding == 1 then
+		if xcalc_window:IsShown() and not overrideOn then
+			xcalc.rebind()
+		elseif not xcalc_window:IsShown() and overrideOn then
+			xcalc.unbind()
+		end
+	end
+end
+
+function xcalc.events:PLAYER_REGEN_DISABLED()
+	if Xcalc_Settings.Binding and Xcalc_Settings.Binding == 1 and overrideOn then 
+		xcalc.unbind() -- unconditionally remove our overrides on combat, we don' want to be hogging keys when someone's jumped.
+	end
+end
+
 frame:SetScript("OnEvent", function(self, event, ...) xcalc.events[event](self, ...) end)
 for k, v in pairs(xcalc.events) do
 	frame:RegisterEvent(k)
@@ -73,7 +94,7 @@ end
 -- Fuction for setting up Saved Variables
 function xcalc.optionvariables()
 	if (Xcalc_Settings.Binding == nil) then
-		Xcalc_Settings.Binding = 0
+		Xcalc_Settings.Binding = 1
 	end
 	if (Xcalc_Settings.Minimapdisplay == nil) then
 		Xcalc_Settings.Minimapdisplay = 1
@@ -131,21 +152,19 @@ end
 
 -- Processes for binding and unbinding numberpad keys to Xcalc
 function xcalc.rebind()
-	if (Xcalc_Settings.Binding == 1) then
+	if (Xcalc_Settings.Binding == 1) and not InCombatLockdown() then
+		
 		for key,value in pairs(xcalc.BindingMap) do
-			xcalc.RemapBindings[key] = GetBindingAction(key)
+			SetOverrideBinding(frame,false,key,value)
 		end
-		for key,value in pairs(xcalc.BindingMap) do
-			SetBinding(key, value)
-		end
+		overrideOn = true
 	end
 end
 
 function xcalc.unbind()
-	if (Xcalc_Settings.Binding == 1) then
-		for key,value in pairs(xcalc.RemapBindings) do
-			SetBinding(key, value)
-		end
+	if (Xcalc_Settings.Binding == 1) and not InCombatLockdown() then
+		ClearOverrideBindings(frame)
+		overrideOn = nil
 	end
 end
 

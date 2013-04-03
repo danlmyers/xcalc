@@ -1,66 +1,66 @@
 ﻿<Bindings>
-	 <Binding name="XC_TOGGLEWINDOW" header="XCALC">
-	 		xcalc.windowdisplay();
-	 </Binding>
-	 
-     <Binding name="XC_NUMLOCK" header="XCALC_AUTOMATIC">
-          
-     </Binding>
-     <Binding name="XC_CLEAR">
-          xcalc.buttoninput("CL");
-     </Binding>
-     <Binding name="XC_BACKSPACE">
-     	  xcalc.buttoninput("BS")
-     </Binding>
+	<Binding name="XC_TOGGLEWINDOW" header="XCALC">
+		xcalc.windowdisplay();
+	</Binding>
 
-     <Binding name="XC_DIV">
-          xcalc.buttoninput("/");
-     </Binding>
-     <Binding name="XC_MUL">
-          xcalc.buttoninput("*");
-     </Binding>
-     <Binding name="XC_SUB">
-          xcalc.buttoninput("-");
-     </Binding>
-     <Binding name="XC_ADD">
-          xcalc.buttoninput("+");
-     </Binding>
-     <Binding name="XC_EQ">
-          xcalc.buttoninput("=");
-     </Binding>
-     
-     <Binding name="XC_0">
-          xcalc.buttoninput("0");
-     </Binding>
-     <Binding name="XC_1">
-          xcalc.buttoninput("1");
-     </Binding>
-     <Binding name="XC_2">
-          xcalc.buttoninput("2");
-     </Binding>
-     <Binding name="XC_3">
-          xcalc.buttoninput("3");
-     </Binding>
-     <Binding name="XC_4">
-          xcalc.buttoninput("4");
-     </Binding>
-     <Binding name="XC_5">
-          xcalc.buttoninput("5");
-     </Binding>
-     <Binding name="XC_6">
-          xcalc.buttoninput("6");
-     </Binding>
-     <Binding name="XC_7">
-          xcalc.buttoninput("7");
-     </Binding>
-     <Binding name="XC_8">
-          xcalc.buttoninput("8");
-     </Binding>
-     <Binding name="XC_9">
-          xcalc.buttoninput("9");
-     </Binding>
+	<Binding name="XC_NUMLOCK" header="XCALC_AUTOMATIC" hidden="true"/>
 
-     <Binding name="XC_DEC">
-          xcalc.buttoninput(".");
-     </Binding>
+
+	<Binding name="XC_CLEAR" hidden="true">
+		xcalc.buttoninput("CL");
+	</Binding>
+	<Binding name="XC_BACKSPACE" hidden="true">
+		xcalc.buttoninput("BS")
+	</Binding>
+
+	<Binding name="XC_DIV" hidden="true">
+		xcalc.buttoninput("/");
+	</Binding>
+	<Binding name="XC_MUL" hidden="true">
+		xcalc.buttoninput("*");
+	</Binding>
+	<Binding name="XC_SUB" hidden="true">
+		xcalc.buttoninput("-");
+	</Binding>
+	<Binding name="XC_ADD" hidden="true">
+		xcalc.buttoninput("+");
+	</Binding>
+	<Binding name="XC_EQ" hidden="true">
+		xcalc.buttoninput("=");
+	</Binding>
+
+	<Binding name="XC_0" hidden="true">
+		xcalc.buttoninput("0");
+	</Binding>
+	<Binding name="XC_1" hidden="true">
+		xcalc.buttoninput("1");
+	</Binding>
+	<Binding name="XC_2" hidden="true">
+		xcalc.buttoninput("2");
+	</Binding>
+	<Binding name="XC_3" hidden="true">
+		xcalc.buttoninput("3");
+	</Binding>
+	<Binding name="XC_4" hidden="true">
+		xcalc.buttoninput("4");
+	</Binding>
+	<Binding name="XC_5" hidden="true">
+		xcalc.buttoninput("5");
+	</Binding>
+	<Binding name="XC_6" hidden="true">
+		xcalc.buttoninput("6");
+	</Binding>
+	<Binding name="XC_7" hidden="true">
+		xcalc.buttoninput("7");
+	</Binding>
+	<Binding name="XC_8" hidden="true">
+		xcalc.buttoninput("8");
+	</Binding>
+	<Binding name="XC_9" hidden="true">
+		xcalc.buttoninput("9");
+	</Binding>
+
+	<Binding name="XC_DEC" hidden="true">
+		xcalc.buttoninput(".");
+	</Binding>
 </Bindings>

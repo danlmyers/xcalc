@@ -1,6 +1,6 @@
 ## Interface: 50200
 ## Title: xcalc
-## Author: Moird
+## Author: Moird, Dridzt
 ## Version: @project-version@
 ## Notes: Basic Calculator
 ## eMail: dan@moird.com
