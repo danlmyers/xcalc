@@ -1,4 +1,4 @@
-## Interface: 40000
+## Interface: 50200
 ## Title: xcalc
 ## Author: Moird
 ## Version: @project-version@
@@ -7,7 +7,9 @@
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
 ## SavedVariablesPerCharacter: Xcalc_Settings
+
 xcalc.lua
 xcalcgui.lua
+elvui.lua
 Localization.lua
 Bindings.xml

@@ -1,13 +1,13 @@
 ﻿--[[
-    Xcalc see version in xcalc.toc.
-    author: moird
-    email: dan@moird.com
-    web: http://moird.com
-
+	Xcalc see version in xcalc.toc.
+	author: moird
+	email: dan@moird.com
+	web: http://moird.com
 ]]
 
---Sudo General Namespaces and globals
-xcalc = {}
+local NAME, xcalc = ...
+
+-- Sudo General Namespaces and globals
 xcalc.events = {}
 Xcalc_Settings = { }
 xcalc.RemapBindings = { }
@@ -24,42 +24,43 @@ xcalc.MemoryNumber = "0"
 xcalc.MemorySet = "0"
 
 xcalc.BindingMap = {
-    NUMLOCK = "XC_NUMLOCK",
-    HOME = "XC_CLEAR",
-    BACKSPACE = "XC_BACKSPACE",
-    NUMPADDIVIDE = "XC_DIV",
-    NUMPADMULTIPLY = "XC_MUL",
-    NUMPADMINUS = "XC_SUB",
-    NUMPADPLUS = "XC_ADD",
-    ENTER = "XC_EQ",
-    NUMPAD0 = "XC_0",
-    NUMPAD1 = "XC_1",
-    NUMPAD2 = "XC_2",
-    NUMPAD3 = "XC_3",
-    NUMPAD4 = "XC_4",
-    NUMPAD5 = "XC_5",
-    NUMPAD6 = "XC_6",
-    NUMPAD7 = "XC_7",
-    NUMPAD8 = "XC_8",
-    NUMPAD9 = "XC_9",
-    NUMPADDECIMAL = "XC_DEC"
-    }
+	NUMLOCK = "XC_NUMLOCK",
+	HOME = "XC_CLEAR",
+	BACKSPACE = "XC_BACKSPACE",
+	NUMPADDIVIDE = "XC_DIV",
+	NUMPADMULTIPLY = "XC_MUL",
+	NUMPADMINUS = "XC_SUB",
+	NUMPADPLUS = "XC_ADD",
+	ENTER = "XC_EQ",
+	NUMPAD0 = "XC_0",
+	NUMPAD1 = "XC_1",
+	NUMPAD2 = "XC_2",
+	NUMPAD3 = "XC_3",
+	NUMPAD4 = "XC_4",
+	NUMPAD5 = "XC_5",
+	NUMPAD6 = "XC_6",
+	NUMPAD7 = "XC_7",
+	NUMPAD8 = "XC_8",
+	NUMPAD9 = "XC_9",
+	NUMPADDECIMAL = "XC_DEC"
+	}
 
 
---Register to addon load event
+-- Register to addon load event
 local frame = CreateFrame("Frame")
 
---Main Initialization
+-- Main Initialization
 function xcalc.events:ADDON_LOADED(arg1, ...)
-	if( arg1 == "xcalc") then
-		--Mod Initialization
+	if( arg1 == NAME) then
+		-- Mod Initialization
 		SlashCmdList["XCALC"] = xcalc.cmdline
 		SLASH_XCALC1 = "/xcalc"
 		SLASH_XCALC2 = "/calc"
 		SLASH_XCALC3 = "/="
-	    xcalc.optionvariables()
-	    xcalc.minimap_init()
-	    XCALC_VERSION = GetAddOnMetadata("xcalc", "Version")
+		xcalc.optionvariables()
+		xcalc.minimap_init()
+		xcalc.VERSION = GetAddOnMetadata(NAME, "Version")
+		frame:UnregisterEvent("ADDON_LOADED")
 	end
 end
 
@@ -69,28 +70,42 @@ for k, v in pairs(xcalc.events) do
 end
 
 
---Fuction for setting up Saved Variables
+-- Fuction for setting up Saved Variables
 function xcalc.optionvariables()
-    if (Xcalc_Settings.Binding == nil) then
-        Xcalc_Settings.Binding = 1
-    end
-    if (Xcalc_Settings.Minimapdisplay == nil) then
-        Xcalc_Settings.Minimapdisplay = 1
-    end
-    if (Xcalc_Settings.Minimappos == nil) then
-        Xcalc_Settings.Minimappos = 295
-    end
+	if (Xcalc_Settings.Binding == nil) then
+		Xcalc_Settings.Binding = 0
+	end
+	if (Xcalc_Settings.Minimapdisplay == nil) then
+		Xcalc_Settings.Minimapdisplay = 1
+	end
+	if (Xcalc_Settings.Minimappos == nil) then
+		Xcalc_Settings.Minimappos = 295
+	end
 end
 
---[[--------------------------------------------------------------------
-    Function for adding Debug messages via xcalc.debug("message") call
-    
-    --------------------------------------------------------------------]]
-function xcalc.debug(debugmsg)
-    ChatFrame1:AddMessage("xcalc debug: " .. debugmsg)
+--[[-------------------------------------------------------------------- 
+	Function for adding Debug messages via xcalc.debug(object) call
+	-------------------------------------------------------------------- ]]
+function xcalc.debug(object)
+	UIParentLoadAddOn("Blizzard_DebugTools")
+	_G['xcalcinfostruct'] = object
+	DevTools_DumpCommand('xcalcinfostruct')
+	_G['xcalcinfostruct'] = nil
 end
 
---Function for handling the chat slash commands
+function xcalc.tochat(...)
+	local expression,result = ...
+	if (DEFAULT_CHAT_FRAME) then
+		if (expression and result) then
+			DEFAULT_CHAT_FRAME:AddMessage(("XCalc: %s = %s"):format(expression,result),1.0, 1.0, 0.5)
+			if not DEFAULT_CHAT_FRAME:IsVisible() then FCF_SelectDockFrame(DEFAULT_CHAT_FRAME) end
+		end
+	else
+		print(tostringall(...))
+	end
+end
+
+-- Function for handling the chat slash commands
 function xcalc.cmdline(msg)
 	-- this function handles our chat command
 	if (msg == nil or msg == "") then
@@ -100,7 +115,7 @@ function xcalc.cmdline(msg)
 
 	local expression = msg
 
-	newexpression = xcalc.parse(expression)
+	local newexpression = xcalc.parse(expression)
 
 	local result = xcalc.xcalculate(newexpression)
 
@@ -110,31 +125,31 @@ function xcalc.cmdline(msg)
 
 	xcalc.ConsoleLastAns = result
 
-	--message(result)
-	ChatFrame1:AddMessage("Xcalc Result: " .. expression .. " = " .. result, 1.0, 1.0, 0.5)
+	-- message(result)
+	xcalc.tochat(expression,result)
 end
 
---Processes for binding and unbinding numberpad keys to Xcalc
+-- Processes for binding and unbinding numberpad keys to Xcalc
 function xcalc.rebind()
-    if (Xcalc_Settings.Binding == 1) then
-    	for key,value in pairs(xcalc.BindingMap) do
-    		xcalc.RemapBindings[key] = GetBindingAction(key)
-    	end
-        for key,value in pairs(xcalc.BindingMap) do
-        	SetBinding(key, value)
-        end
-    end
+	if (Xcalc_Settings.Binding == 1) then
+		for key,value in pairs(xcalc.BindingMap) do
+			xcalc.RemapBindings[key] = GetBindingAction(key)
+		end
+		for key,value in pairs(xcalc.BindingMap) do
+			SetBinding(key, value)
+		end
+	end
 end
 
 function xcalc.unbind()
-    if (Xcalc_Settings.Binding == 1) then
-        for key,value in pairs(xcalc.RemapBindings) do
-        	SetBinding(key, value)
-        end
-    end
+	if (Xcalc_Settings.Binding == 1) then
+		for key,value in pairs(xcalc.RemapBindings) do
+			SetBinding(key, value)
+		end
+	end
 end
 
---Handle Key Inputs
+-- Handle Key Inputs
 function xcalc.buttoninput(key)
 	if ( key == "CL" ) then
 		xcalc.clear()
@@ -165,134 +180,134 @@ function xcalc.buttoninput(key)
 	end
 end
 
---Button Clear
+-- Button Clear
 function xcalc.clear()
-    xcalc.RunningTotal = ""
-    xcalc.PreviousKeyType = "none"
-    xcalc.PreviousOP = ""
-    xcalc.display("0")
+	xcalc.RunningTotal = ""
+	xcalc.PreviousKeyType = "none"
+	xcalc.PreviousOP = ""
+	xcalc.display("0")
 end
 
---Button CE
+-- Button CE
 function xcalc.ce()
-    xcalc.display("0")
+	xcalc.display("0")
 end
 
---Button Backspace
+-- Button Backspace
 function xcalc.backspace()
-    local currText = xcalc.NumberDisplay
-    if (currText == "0") then
-        return
-    else
-        length = string.len(currText)-1
-        if (length < 0) then
-            length = 0
-        end
-        currText = string.sub(currText,0,length)
-        if (string.len(currText) < 1) then
-            xcalc.display("0")
-        else
-            xcalc.display(currText)
-        end
-    end
-end
-
---Button Plus Minus Key
-function xcalc.plusminus()
-    local currText = xcalc.NumberDisplay
-    if (currText ~= "0") then
-		if (string.find(currText, "-")) then
-            currText = string.sub(currText, 2)
+	local currText = xcalc.NumberDisplay
+	if (currText == "0") then
+		return
+	else
+		local length = string.len(currText)-1
+		if (length < 0) then
+			length = 0
+		end
+		currText = string.sub(currText,0,length)
+		if (string.len(currText) < 1) then
+			xcalc.display("0")
 		else
-			currText = "-" .. currText
+			xcalc.display(currText)
 		end
 	end
-    xcalc.PreviousKeyType = "state"
-    xcalc.display(currText)
 end
 
---Button Gold (state)
+-- Button Plus Minus Key
+function xcalc.plusminus()
+	local currText = xcalc.NumberDisplay
+	if (currText ~= "0") then
+		if (string.find(currText, "-")) then
+			currText = string.sub(currText, 2)
+		else
+			currText = ("-%s"):format(currText)
+		end
+	end
+	xcalc.PreviousKeyType = "state"
+	xcalc.display(currText)
+end
+
+-- Button Gold (state)
 function xcalc.stategold()
-    local currText = xcalc.NumberDisplay
+	local currText = xcalc.NumberDisplay
 	if (string.find(currText, "[csg]") == nil) then
-		currText = currText .. "g"
+		currText = ("%sg"):format(currText)
 	end
-    xcalc.PreviousKeyType = "state"
-    xcalc.display(currText)
+	xcalc.PreviousKeyType = "state"
+	xcalc.display(currText)
 end
 
---Button Silver (state)
+-- Button Silver (state)
 function xcalc.statesilver()
-    local currText = xcalc.NumberDisplay
+	local currText = xcalc.NumberDisplay
 	if (string.find(currText, "[cs]") == nil) then
-		currText = currText .. "s"
+		currText = ("%ss"):format(currText)
 	end
-    xcalc.PreviousKeyType = "state"
-    xcalc.display(currText)
+	xcalc.PreviousKeyType = "state"
+	xcalc.display(currText)
 end
 
---Button Copper (state)
+-- Button Copper (state)
 function xcalc.statecopper()
-    local currText = xcalc.NumberDisplay
+	local currText = xcalc.NumberDisplay
 	if (string.find(currText, "c") == nil) then
-		currText = currText .. "c"
+		currText = ("%sc"):format(currText)
 	end
-    xcalc.PreviousKeyType = "state"
-    xcalc.display(currText)
+	xcalc.PreviousKeyType = "state"
+	xcalc.display(currText)
 end
 
---Button Memory Clear
+-- Button Memory Clear
 function xcalc.mc()
-    xcalc.MemoryNumber = "0"
-    xcalc.display(xcalc.NumberDisplay, "0")
+	xcalc.MemoryNumber = "0"
+	xcalc.display(xcalc.NumberDisplay, "0")
 end
 
---Button Memory Add
+-- Button Memory Add
 function xcalc.ma()
-    temp = xcalc.parse(xcalc.MemoryNumber .. "+" .. xcalc.NumberDisplay)
-    xcalc.MemoryNumber = xcalc.xcalculate(temp)
-    xcalc.display("0","1")
-    xcalc.clear()
+	local temp = xcalc.parse(("%s+%s"):format(xcalc.MemoryNumber,xcalc.NumberDisplay))
+	xcalc.MemoryNumber = xcalc.xcalculate(temp)
+	xcalc.display("0","1")
+	xcalc.clear()
 end
 
---Button Memory Store
+-- Button Memory Store
 function xcalc.ms()
-    xcalc.MemoryNumber = xcalc.parse(xcalc.NumberDisplay)
-    xcalc.display("0","1")
-    xcalc.clear()
+	xcalc.MemoryNumber = xcalc.parse(xcalc.NumberDisplay)
+	xcalc.display("0","1")
+	xcalc.clear()
 end
 
---Button Memory Recall
+-- Button Memory Recall
 function xcalc.mr()
-    xcalc.display(xcalc.MemoryNumber)
+	xcalc.display(xcalc.MemoryNumber)
 end
 
---Sets up the function keys ie, + - * / =
+-- Sets up the function keys ie, + - * / =
 function xcalc.funckey(key)
 	local currText = xcalc.NumberDisplay
-    if ( IsShiftKeyDown() and key == "=" ) then
-        ChatFrame_OpenChat("")
-        return
-    end
+	if ( IsShiftKeyDown() and key == "=" ) then
+		ChatFrame_OpenChat("")
+		return
+	end
 	if (xcalc.PreviousKeyType=="none" or xcalc.PreviousKeyType=="num" or xcalc.PreviousKeyType=="state") then
 			if (key == "/" or key == "*" or key == "-" or key == "-" or key == "+" or key == "^") then
 					
 				if (xcalc.PreviousOP~="" and xcalc.PreviousOP ~= "=") then
-					temp = xcalc.parse(xcalc.RunningTotal .. xcalc.PreviousOP .. currText)
+					local temp = xcalc.parse(("%s%s%s"):format(xcalc.RunningTotal,xcalc.PreviousOP,currText))
 					currText = xcalc.xcalculate(temp)
 				end
 				xcalc.RunningTotal = currText
 				xcalc.PreviousOP = key
 			elseif (key == "=") then
-				if xcalc.PreviousOP ~= "=" and  xcalc.PreviousOP ~= "" then
-					temp = xcalc.parse(xcalc.RunningTotal .. xcalc.PreviousOP .. currText)
+				if xcalc.PreviousOP ~= "=" and	xcalc.PreviousOP ~= "" then
+					local temp = xcalc.parse(("%s%s%s"):format(xcalc.RunningTotal,xcalc.PreviousOP,currText))
 					currText = xcalc.xcalculate(temp)
 					xcalc.RunningTotal = currText
 					xcalc.PreviousOP="="
 				end
 			end
 				
-	else --must be a func key, a second+ time
+	else -- must be a func key, a second+ time
 		if (key == "/" or key == "*" or key == "-" or key == "-" or key == "+" or key == "^") then
 			xcalc.PreviousOP=key
 		else
@@ -303,21 +318,21 @@ function xcalc.funckey(key)
 	xcalc.display(currText)
 end
 
---Manage Number Inputs
+-- Manage Number Inputs
 function xcalc.numkey(key)
 	local currText = xcalc.NumberDisplay
 	
 	if (xcalc.PreviousKeyType=="none" or xcalc.PreviousKeyType=="num" or xcalc.PreviousKeyType=="state")then
 		if (key == ".") then
 			if (string.find(currText, "[csg%.]") == nil) then
-				currText = currText .. "."
+				currText = ("%s."):format(currText)
 			end
 		else
 			if (currText == "0") then
 				currText = ""
 			end	
 
-			currText = currText .. key
+			currText = ("%s%s"):format(currText,key)
 		end
 	else
 		if (key == ".") then
@@ -328,96 +343,104 @@ function xcalc.numkey(key)
 	end
 
 	xcalc.PreviousKeyType = "num"
-    xcalc.display(currText)
+	xcalc.display(currText)
 end
 
---Send the number display to an open chatbox
-function xcalc.numberdisplay_click(button, ignoreShift)
+-- Send the number display to an open chatbox
+function xcalc.numberdisplay_click(frame,button,down)
 	if ( button == "LeftButton" ) then
-		if ( IsShiftKeyDown() and not ignoreShift ) then
-			if ( ChatFrameEditBox:IsVisible() ) then
-				ChatFrameEditBox:Insert(xcalc.NumberDisplay)
+		if ( IsShiftKeyDown() ) then
+			local activeEdit = ChatEdit_GetActiveWindow()
+			if (activeEdit) then
+				activeEdit:Insert(xcalc.NumberDisplay)
 			end
 		end
 	end
 end
 
+-- Tooltip hint for linking result to chat
+function xcalc.numberdisplay_enter(frame)
+	GameTooltip:SetOwner(frame,"ANCHOR_TOP")	
+	GameTooltip:SetText("Shift-click inserts to an open chat")
+	GameTooltip:Show()
+end
 
---[[-----------------------------------------------------------------------------------
-    Where the Calculations occur
-    On a side note, Simple is easier, getting into complex if/then/elseif/else statements
-    to perform math functions may introduce unexpected results... maybe.
-    -----------------------------------------------------------------------------------]]
+
+--[[----------------------------------------------------------------------------------- 
+	Where the Calculations occur
+	On a side note, Simple is easier, getting into complex if/then/elseif/else statements
+	to perform math functions may introduce unexpected results... maybe.
+	----------------------------------------------------------------------------------- ]]
 function xcalc.xcalculate(expression)
 	local tempvar = "QCExpVal"
 
-	setglobal(tempvar, nil)
-	RunScript(tempvar .. "=(" .. expression .. ")")
-	local result = getglobal(tempvar)
+	_G[tempvar] = nil
+	RunScript(("%s=(%s)"):format(tempvar,expression))
+	local result = _G[tempvar]
 
 	return result
 end
 
---This function parses the input for the money functions
+-- This function parses the input for the money functions
 function xcalc.parse(expression)
 	local ismoney = false
 
-	newexpression = expression
+	local newexpression = expression
 
-	local newexpression = string.gsub(newexpression, "ans", xcalc.ConsoleLastAns)
+	newexpression = string.gsub(newexpression, "ans", xcalc.ConsoleLastAns)
 
 	-- g s c
-	local newexpression = string.gsub(newexpression, "%d+g%d+s%d+c", function (a)
+	newexpression = string.gsub(newexpression, "%d+g%d+s%d+c", function (a)
 			ismoney = true
 			return xcalc.FromGSC(a)
 		end )
 
 	-- g s
-	local newexpression = string.gsub(newexpression, "%d+g%d+s", function (a)
+	newexpression = string.gsub(newexpression, "%d+g%d+s", function (a)
 			ismoney = true
 			return xcalc.FromGSC(a)
 		end )
 
 
-	-- g   c
-	local newexpression = string.gsub(newexpression, "%d+g%d+c", function (a)
+	-- g	 c
+	newexpression = string.gsub(newexpression, "%d+g%d+c", function (a)
 			ismoney = true
 			return xcalc.FromGSC(a)
 		end )
 
-	-- g         allows #.#
-	local newexpression = string.gsub(newexpression, "%d+%.?%d*g", function (a)
+	-- g		 allows #.#
+	newexpression = string.gsub(newexpression, "%d+%.?%d*g", function (a)
 			ismoney = true
 			return xcalc.FromGSC(a)
 		end )
 
-	--   s c
-	local newexpression = string.gsub(newexpression, "%d+s%d+c", function (a)
+	--	 s c
+	newexpression = string.gsub(newexpression, "%d+s%d+c", function (a)
 			ismoney = true
 			return xcalc.FromGSC(a)
 		end )
 
-	--   s       allows #.#
-	local newexpression = string.gsub(newexpression, "%d+%.?%d*s", function (a)
+	--	 s		 allows #.#
+	newexpression = string.gsub(newexpression, "%d+%.?%d*s", function (a)
 			ismoney = true
 			return xcalc.FromGSC(a)
 		end )
 
-	--     c
-	local newexpression = string.gsub(newexpression, "%d+c", function (a)
+	--	 c
+	newexpression = string.gsub(newexpression, "%d+c", function (a)
 			ismoney = true
 			return xcalc.FromGSC(a)
 		end )
 
 
 	if (ismoney) then
-		newexpression = "xcalc.ToGSC(" .. newexpression .. ")"
+		newexpression = ("xcalc.ToGSC(%s)"):format(newexpression)
 	end
 
 	return newexpression
 end
 
---The following two functions do the to and from gold calculations
+-- The following two functions do the to and from gold calculations
 function xcalc.ToGSC(decimal, std)
 	local gold = 0
 	local silver = 0
@@ -456,13 +479,13 @@ function xcalc.ToGSC(decimal, std)
 	local temp = ""
 
 	if (gold > 0) then
-		temp = temp .. gold .. "g"
+		temp = ("%s%sg"):format(temp,gold)
 	end
 	if (silver > 0 or (gold > 0 and copper > 0)) then
-		temp = temp .. silver .. "s"
+		temp = ("%s%ss"):format(temp,silver)
 	end
 	if (copper > 0) then
-		temp = temp .. copper .. "c"
+		temp = ("%s%sc"):format(temp,copper)
 	end
 
 	return temp
@@ -478,21 +501,21 @@ function xcalc.FromGSC(gold, silver, copper)
 	if (type(gold) == "string" and (not silver or type(silver) == "nil") and (not copper or type(copper) == "nil")) then
 		local temp = gold
 		
-		golds,golde = string.find(temp, "%d*%.?%d*g")
+		local golds,golde = string.find(temp, "%d*%.?%d*g")
 		if (golds == nil) then
 			gold = 0
 		else
 			gold = string.sub(temp, golds, golde - 1)
 		end
 	
-		silvers,silvere = string.find(temp, "%d*%.?%d*s")
+		local silvers,silvere = string.find(temp, "%d*%.?%d*s")
 		if (silvers == nil) then
 			silver = 0
 		else
 			silver = string.sub(temp, silvers, silvere - 1)
 		end
 
-		coppers,coppere = string.find(temp, "%d*c")
+		local coppers,coppere = string.find(temp, "%d*c")
 		if (coppers == nil) then
 			copper = 0
 		else
@@ -504,5 +527,7 @@ function xcalc.FromGSC(gold, silver, copper)
 	total = total + (silver * 100)
 	total = total + (gold * 10000)
 
-	return "" .. total
+	return ("%s"):format(total)
 end
+
+_G[NAME] = xcalc
