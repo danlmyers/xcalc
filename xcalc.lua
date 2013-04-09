@@ -70,7 +70,7 @@ function xcalc.events:ADDON_LOADED(arg1, ...)
 end
 
 function xcalc.events:PLAYER_REGEN_ENABLED()
-	if Xcalc_Settings.Binding and Xcalc_Settings.Binding == 1 then
+	if xcalc_window and Xcalc_Settings.Binding and Xcalc_Settings.Binding == 1 then
 		if xcalc_window:IsShown() and not overrideOn then
 			xcalc.rebind()
 		elseif not xcalc_window:IsShown() and overrideOn then
