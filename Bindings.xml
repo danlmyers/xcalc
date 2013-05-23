@@ -3,7 +3,7 @@
 		xcalc.windowdisplay();
 	</Binding>
 
-	<Binding name="XC_NUMLOCK" header="XCALC_AUTOMATIC" hidden="true"/>
+	<Binding name="XC_NUMLOCK" hidden="true"/>
 
 
 	<Binding name="XC_CLEAR" hidden="true">
