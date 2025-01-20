@@ -1,319 +1,259 @@
---[[
-	This file contains all the GUI instructions.
-	The idea of using lua to do all the drawing makes sense to me
-	even if it is potentially slower than xml to do the same.  Figure
-	that most people are not going to need the calculator to open and
-	run the whatever speed increase is of using xml.  I haven't noticed
-	much difference between loading it via lua vs other mods that use xml
-]]
+local AceGUI = LibStub("AceGUI-3.0")
 
 
--- Display Main calculator Window
-function xcalc.windowdisplay()
-	if (xcalc_window == nil) then
-		xcalc.windowframe()
-		xcalc_window:Show()
-	elseif (xcalc_window:IsVisible()) then
-		xcalc_window:Hide()
-	else
-		xcalc_window:Show()
-		xcalc.clear()
-	end
-end
-
--- Display options window
-function xcalc.optiondisplay()
-	if (xcalc_optionwindow == nil) then
-		xcalc.optionframe()
-		xcalc_optionwindow:Show()
-	elseif (xcalc_optionwindow:IsVisible()) then
-		xcalc_optionwindow:Hide()
-	else
-		xcalc_optionwindow:Show()
-	end
-end
-
-
-function xcalc.display(displaynumber, memoryset)
-	if ( displaynumber == nil or displaynumber == "" ) then
+function xcalc.display(displaynumber)
+	if not displaynumber then
 		displaynumber = "0"
-	elseif ( memoryset == "1" ) then
-		xcalc_memorydisplay:SetText ( xcalc.MemoryIndicatorON )
-	elseif ( memoryset == "0" ) then
-		xcalc_memorydisplay:SetText( xcalc.MemoryIndicator )
 	end
-	xcalc.NumberDisplay = displaynumber
-	xcalc_numberdisplay:SetText( displaynumber )
+
+	xcalc.editbox:SetText( displaynumber )
 end
 
-function xcalc.minimap_init()
-	if (Xcalc_Settings.Minimapdisplay == 1) then
-		local frame = CreateFrame("Button","xcalc_minimap_button",Minimap)
-		frame:SetWidth(34)
-		frame:SetHeight(34)
-		frame:SetFrameStrata("LOW")
-		frame:SetToplevel(1)
-		frame:SetNormalTexture("Interface\\AddOns\\xcalc\\xcalc_ButtonRoundNormal.tga")
-		frame:SetPushedTexture("Interface\\AddOns\\xcalc\\xcalc_ButtonRoundPushed.tga")
-		frame:SetHighlightTexture("Interface/Minimap/UI-Minimap-ZoomButton-Highlight")
-		frame:RegisterForClicks("AnyUp")
-		frame:SetScript("OnClick", function(self, button, down)
-			if (button == "LeftButton") then
-				xcalc.windowdisplay()
-			elseif (button == "RightButton") then
-				xcalc.optiondisplay()
-			end
-		end)
-		frame:SetScript("OnEnter", function() xcalc.tooltip("minimap") end)
-		frame:SetScript("OnLeave", function() xcalc.tooltip("hide") end)
-		xcalc.minimapbutton_updateposition()
-		frame:Show()
+function xcalc.displayhistory()
+	xcalc.scrollframe:ReleaseChildren()
+	local history = xcalc:GetHistory()
+	for i=1,#history do
+		local displaylabel = AceGUI:Create("Label")
+		displaylabel:SetFullWidth(true)
+		displaylabel:SetJustifyH("RIGHT")
+		displaylabel:SetFont(STANDARD_TEXT_FONT,16,"")
+		displaylabel:SetText(history[#history+1-i])
+		xcalc.scrollframe:AddChild(displaylabel)
 	end
+	xcalc.scrollframe:SetScroll(1000)
 end
 
--- Minimap button Position
-function xcalc.minimapbutton_updateposition()
+function xcalc:WindowFrame()
+	if not xcalc.MainFrame then
+		xcalc.MainFrame = AceGUI:Create("Frame")
+		xcalc.MainFrame:SetTitle("xcalc " .. xcalc.VERSION)
+		xcalc.MainFrame:SetWidth(420)
+		xcalc.MainFrame:SetHeight(400)
+		xcalc.MainFrame:SetLayout("List")
+		xcalc.MainFrame:SetCallback("OnClose", function() xcalc.unbind() end)
+		xcalc.MainFrame:SetCallback("OnShow", function() xcalc.rebind()  end)
+		-- Allows us to close the window with Escape Key properly
+		_G["XCALC_MAIN_WINDOW"] = xcalc.MainFrame.frame
+		tinsert(UISpecialFrames, "XCALC_MAIN_WINDOW")
 
-	xcalc_minimap_button:SetPoint("TOPLEFT", "Minimap", "TOPLEFT",
-	54 - (78 * cos(Xcalc_Settings.Minimappos)),
-	(78 * sin(Xcalc_Settings.Minimappos)) - 55)
+		local scrollcontainer = AceGUI:Create("InlineGroup")
+		scrollcontainer:SetFullWidth(true)
+		scrollcontainer:SetHeight(120)
+		scrollcontainer:SetLayout("Fill")
+		xcalc.MainFrame:AddChild(scrollcontainer)
 
-end
+		xcalc.scrollframe = AceGUI:Create("ScrollFrame")
+		xcalc.scrollframe:SetLayout("Flow")
+		scrollcontainer:AddChild(xcalc.scrollframe)
+
+		local row0 = AceGUI:Create("SimpleGroup")
+		row0:SetFullWidth(true)
+		row0:SetLayout("Flow")
+		xcalc.MainFrame:AddChild(row0)
+
+		xcalc.editbox = AceGUI:Create("EditBox")
+		xcalc.editbox:SetFullWidth(true)
+		xcalc.editbox:SetLabel("")
+		xcalc.editbox:SetFocus()
+		xcalc.editbox:SetCallback("OnEnterPressed", function() xcalc:equalsbutton() end)
+		row0:AddChild(xcalc.editbox)
 
 
--- Tooltip display
-function xcalc.tooltip(mouseover)
-	if ( mouseover == "minimap" ) then
-		GameTooltip:SetOwner(xcalc_minimap_button , "ANCHOR_BOTTOMLEFT")
-		GameTooltip:SetText("Show/Hide xcalc")
+		local row1 = AceGUI:Create("SimpleGroup")
+		row1:SetFullWidth(true)
+		row1:SetLayout("Flow")
+		xcalc.MainFrame:AddChild(row1)
+
+		local backspacebutton = AceGUI:Create("Button")
+		backspacebutton:SetText("Backspace")
+		backspacebutton:SetRelativeWidth(.4)
+		backspacebutton:SetCallback("OnClick", function() xcalc.backspace()  end)
+		row1:AddChild(backspacebutton)
+
+		local cbutton = AceGUI:Create("Button")
+		cbutton:SetText("C")
+		cbutton:SetRelativeWidth(.2)
+		cbutton:SetCallback("OnClick", function() xcalc.display(0)  end)
+		row1:AddChild(cbutton)
+
+		local leftparentbutton = AceGUI:Create("Button")
+		leftparentbutton:SetText("(")
+		leftparentbutton:SetRelativeWidth(.2)
+		leftparentbutton:SetCallback("OnClick", function() xcalc:UpdateEditBox("(")  end)
+		row1:AddChild(leftparentbutton)
+
+		local rightparentbutton = AceGUI:Create("Button")
+		rightparentbutton:SetText(")")
+		rightparentbutton:SetRelativeWidth(.2)
+		rightparentbutton:SetCallback("OnClick", function() xcalc:UpdateEditBox(")")  end)
+		row1:AddChild(rightparentbutton)
+
+		local row2 = AceGUI:Create("SimpleGroup")
+		row2:SetFullWidth(true)
+		row2:SetLayout("Flow")
+		xcalc.MainFrame:AddChild(row2)
+
+		local sevenbutton = AceGUI:Create("Button")
+		sevenbutton:SetText("7")
+		sevenbutton:SetRelativeWidth(.2)
+		sevenbutton:SetCallback("OnClick", function() xcalc:UpdateEditBox("7")  end)
+		row2:AddChild(sevenbutton)
+
+		local eightbutton = AceGUI:Create("Button")
+		eightbutton:SetText("8")
+		eightbutton:SetRelativeWidth(.2)
+		eightbutton:SetCallback("OnClick", function() xcalc:UpdateEditBox("8")  end)
+		row2:AddChild(eightbutton)
+
+		local ninebutton = AceGUI:Create("Button")
+		ninebutton:SetText("9")
+		ninebutton:SetRelativeWidth(.2)
+		ninebutton:SetCallback("OnClick", function() xcalc:UpdateEditBox("9")  end)
+		row2:AddChild(ninebutton)
+
+		local dividebutton = AceGUI:Create("Button")
+		dividebutton:SetText("/")
+		dividebutton:SetRelativeWidth(.2)
+		dividebutton:SetCallback("OnClick", function() xcalc:UpdateEditBox("/")  end)
+		row2:AddChild(dividebutton)
+
+		local sqrtbutton = AceGUI:Create("Button")
+		sqrtbutton:SetText("√")
+		sqrtbutton:SetRelativeWidth(.2)
+		sqrtbutton:SetCallback("OnClick", function() xcalc:UpdateEditBox("√")  end)
+		row2:AddChild(sqrtbutton)
+
+		local row3 = AceGUI:Create("SimpleGroup")
+		row3:SetFullWidth(true)
+		row3:SetLayout("Flow")
+		xcalc.MainFrame:AddChild(row3)
+
+		local fourbutton = AceGUI:Create("Button")
+		fourbutton:SetText("4")
+		fourbutton:SetRelativeWidth(.2)
+		fourbutton:SetCallback("OnClick", function() xcalc:UpdateEditBox("4")  end)
+		row3:AddChild(fourbutton)
+
+		local fivebutton = AceGUI:Create("Button")
+		fivebutton:SetText("5")
+		fivebutton:SetRelativeWidth(.2)
+		fivebutton:SetCallback("OnClick", function() xcalc:UpdateEditBox("5")  end)
+		row3:AddChild(fivebutton)
+
+		local sixbutton = AceGUI:Create("Button")
+		sixbutton:SetText("6")
+		sixbutton:SetRelativeWidth(.2)
+		sixbutton:SetCallback("OnClick", function() xcalc:UpdateEditBox("6")  end)
+		row3:AddChild(sixbutton)
+
+		local timesbutton = AceGUI:Create("Button")
+		timesbutton:SetText("x")
+		timesbutton:SetRelativeWidth(.2)
+		timesbutton:SetCallback("OnClick", function() xcalc:UpdateEditBox("*")  end)
+		row3:AddChild(timesbutton)
+
+		local negativebutton = AceGUI:Create("Button")
+		negativebutton:SetText("+/-")
+		negativebutton:SetRelativeWidth(.2)
+		negativebutton:SetCallback("OnClick", function() xcalc.plusminus()  end)
+		row3:AddChild(negativebutton)
+
+		local row4 = AceGUI:Create("SimpleGroup")
+		row4:SetFullWidth(true)
+		row4:SetLayout("Flow")
+		xcalc.MainFrame:AddChild(row4)
+
+		local onebutton = AceGUI:Create("Button")
+		onebutton:SetText("1")
+		onebutton:SetRelativeWidth(.2)
+		onebutton:SetCallback("OnClick", function() xcalc:UpdateEditBox("1")  end)
+		row4:AddChild(onebutton)
+
+		local twobutton = AceGUI:Create("Button")
+		twobutton:SetText("2")
+		twobutton:SetRelativeWidth(.2)
+		twobutton:SetCallback("OnClick", function() xcalc:UpdateEditBox("2")  end)
+		row4:AddChild(twobutton)
+
+		local threebutton = AceGUI:Create("Button")
+		threebutton:SetText("3")
+		threebutton:SetRelativeWidth(.2)
+		threebutton:SetCallback("OnClick", function() xcalc:UpdateEditBox("3")  end)
+		row4:AddChild(threebutton)
+
+		local minusbutton = AceGUI:Create("Button")
+		minusbutton:SetText("-")
+		minusbutton:SetRelativeWidth(.2)
+		minusbutton:SetCallback("OnClick", function() xcalc:UpdateEditBox("-")  end)
+		row4:AddChild(minusbutton)
+
+		local exponentbutton = AceGUI:Create("Button")
+		exponentbutton:SetText("^")
+		exponentbutton:SetRelativeWidth(.2)
+		exponentbutton:SetCallback("OnClick", function() xcalc:UpdateEditBox("^")  end)
+		row4:AddChild(exponentbutton)
+
+		local row5 = AceGUI:Create("SimpleGroup")
+		row5:SetFullWidth(true)
+		row5:SetLayout("Flow")
+		xcalc.MainFrame:AddChild(row5)
+
+		local zerobutton = AceGUI:Create("Button")
+		zerobutton:SetText("0")
+		zerobutton:SetRelativeWidth(.2)
+		zerobutton:SetCallback("OnClick", function() xcalc:UpdateEditBox("0")  end)
+		row5:AddChild(zerobutton)
+
+		local decimalbutton = AceGUI:Create("Button")
+		decimalbutton:SetText(".")
+		decimalbutton:SetRelativeWidth(.2)
+		decimalbutton:SetCallback("OnClick", function() xcalc:UpdateEditBox(".") end)
+		row5:AddChild(decimalbutton)
+
+		local percentbutton = AceGUI:Create("Button")
+		percentbutton:SetText("%")
+		percentbutton:SetRelativeWidth(.2)
+		percentbutton:SetCallback("OnClick", function() xcalc:UpdateEditBox("%")  end)
+		row5:AddChild(percentbutton)
+
+		local plusbutton = AceGUI:Create("Button")
+		plusbutton:SetText("+")
+		plusbutton:SetRelativeWidth(.2)
+		plusbutton:SetCallback("OnClick", function() xcalc:UpdateEditBox("+")  end)
+		row5:AddChild(plusbutton)
+
+		local equalsbutton = AceGUI:Create("Button")
+		equalsbutton:SetText("=")
+		equalsbutton:SetRelativeWidth(.2)
+		equalsbutton:SetCallback("OnClick", function() xcalc:equalsbutton() end)
+		row5:AddChild(equalsbutton)
+
+		local row6 = AceGUI:Create("SimpleGroup")
+		row6:SetFullWidth(true)
+		row6:SetLayout("Flow")
+		xcalc.MainFrame:AddChild(row6)
+
+		local goldbutton = AceGUI:Create("Button")
+		goldbutton:SetText("g")
+		goldbutton:SetRelativeWidth(.33)
+		goldbutton:SetCallback("OnClick", function() xcalc.stategold()  end)
+		row6:AddChild(goldbutton)
+
+		local silverbutton = AceGUI:Create("Button")
+		silverbutton:SetText("s")
+		silverbutton:SetRelativeWidth(.33)
+		silverbutton:SetCallback("OnClick", function() xcalc.statesilver()  end)
+		row6:AddChild(silverbutton)
+
+		local copperbutton = AceGUI:Create("Button")
+		copperbutton:SetText("c")
+		copperbutton:SetRelativeWidth(.33)
+		copperbutton:SetCallback("OnClick", function() xcalc.statecopper()  end)
+		row6:AddChild(copperbutton)
+
 	else
-		GameTooltip : Hide ()
+		xcalc.MainFrame:Show()
 	end
-end
 
--- Function for handeling Binding checkbox
-function xcalc.options_binding()
-	if (xcalc_options_bindcheckbox:GetChecked() == 1) then
-		Xcalc_Settings.Binding = 1
-	else
-		xcalc.unbind()
-		Xcalc_Settings.Binding = 0
-	end
-end
-
--- Function for Handeling Minimap Display checkbox
-function xcalc.options_minimapdisplay()
-	if (xcalc_options_minimapcheckbox:GetChecked() == 1) then
-		Xcalc_Settings.Minimapdisplay = 1
-		if (xcalc_minimap_button == nil) then
-			xcalc.minimap_init()
-		else
-			xcalc_minimap_button:Show()
-		end
-	else
-		Xcalc_Settings.Minimapdisplay = 0
-		xcalc_minimap_button:Hide()
-	end
-end
-
--- Function for managing options slider
-function xcalc.options_minimapslidercontrol()
-	if (Xcalc_Settings.Minimapdisplay == 1) then
-		Xcalc_Settings.Minimappos = xcalc_options_minimapslider:GetValue()
-		xcalc.minimapbutton_updateposition()
-	else
-		xcalc_options_minimapslider:SetValue(Xcalc_Settings.Minimappos)
-		return
-	end
-end
-
--- Draw the main window
-function xcalc.windowframe()
-	-- Main Window Frame (container) and title bar
-	local frame = CreateFrame("Frame","xcalc_window",UIParent)
-	frame:SetFrameStrata("HIGH")
-	frame:EnableMouse(true)
-	frame:EnableKeyboard(true)
-	frame:SetMovable(true)
-	frame:SetClampedToScreen(true)
-	frame:SetHeight(307)
-	frame:SetWidth(240)
-	frame:SetScript("OnMouseDown", function() frame:StartMoving() end)
-	frame:SetScript("OnMouseUp", function() frame:StopMovingOrSizing() end)
-	frame:SetScript("OnShow", function() xcalc.rebind() end)
-	frame:SetScript("OnHide", function() xcalc.unbind() end)
-	frame:SetBackdrop({bgFile = "Interface/DialogFrame/UI-DialogBox-Background",
-		edgeFile = "Interface/DialogFrame/UI-DialogBox-Border",
-		tile = true, tileSize = 32, edgeSize = 32,
-		insets = { left = 11, right = 12, top = 12, bottom = 11 }})
-	frame:SetPoint("CENTER",0,0)
-	local titletexture = frame:CreateTexture("xcalc_window_titletexture")
-	titletexture:SetHeight(32)
-	titletexture:SetWidth(160)
-	titletexture:SetTexture("Interface/DialogFrame/UI-DialogBox-Header")
-	titletexture:SetTexCoord(0.2, 0.8, 0, 0.6)
-	titletexture:SetPoint("TOP",0,5)
-	local titlefont = frame:CreateFontString("xcalc_windowtest_titlefont")
-	titlefont:SetHeight(0)
-	titlefont:SetWidth(140)
-	titlefont:SetFont(STANDARD_TEXT_FONT,12)
-	titlefont:SetPoint("TOP",0,-4)
-	titlefont:SetTextColor(1,0.8196079,0)
-	titlefont:SetText("xcalc " .. xcalc.VERSION)
-	-- Number Display box
-	local numberdisplaybackground = frame:CreateTexture("xcalc_numberdisplaybackground")
-	numberdisplaybackground:SetHeight(34)
-	numberdisplaybackground:SetWidth(215)
-	numberdisplaybackground:SetTexture("interface/chatframe/ui-chatinputborder")
-	numberdisplaybackground:SetPoint("TOPLEFT",10,-33)
-	local numberdisplay = frame:CreateFontString("xcalc_numberdisplay",nil,"NumberFont_OutlineThick_Mono_Small")
-	numberdisplay:SetHeight(34)
-	numberdisplay:SetWidth(205)
-	numberdisplay:SetJustifyH("RIGHT")
-	numberdisplay:SetPoint("TOPLEFT",10,-33)
-	numberdisplay:SetText(xcalc.NumberDisplay)
-	local numberdisplayclickoverlay = CreateFrame("Button","xcalc_numberdisplayclickoverlay",frame)
-	numberdisplayclickoverlay:SetAllPoints(numberdisplay)
-	numberdisplayclickoverlay:Show()
-	numberdisplayclickoverlay:EnableMouse(true)
-	numberdisplayclickoverlay:SetScript("OnClick",xcalc.numberdisplay_click)
-	numberdisplayclickoverlay:SetScript("OnEnter",xcalc.numberdisplay_enter)
-	numberdisplayclickoverlay:SetScript("OnLeave",GameTooltip_Hide)
-	-- Memory Display
-	local memorydisplay = frame:CreateFontString("xcalc_memorydisplay","GameFontNormal")
-	memorydisplay:SetWidth(29)
-	memorydisplay:SetHeight(29)
-	memorydisplay:SetFont(STANDARD_TEXT_FONT,12)
-	memorydisplay:SetPoint("TOPLEFT",15,-73)
-	-- memorydisplay:SetText("M")
-	-- ExitButton
-	local exitbutton = CreateFrame("Button", "xcalc_exitbutton",frame,"UIPanelCloseButton")
-	exitbutton:SetPoint("TOPRIGHT",-4,-4)
-	exitbutton:SetScript("OnClick", function() xcalc.windowdisplay() end)
-
-	-- Main calculator buttons
-	xcalc.button(75,29,50,-73,"Backspace","BS")
-	xcalc.button(41,29,131,-73,"CE","CE")
-	xcalc.button(41,29,178,-73,"C","CL")
-	xcalc.button(29,70,190,-183,"=","=")
-	xcalc.button(29,32,190,-146,"^","^")
-	xcalc.button(29,32,190,-108,"+/-","PM")
-	xcalc.button(29,32,155,-221,"+","+")
-	xcalc.button(29,32,155,-183,"-","-")
-	xcalc.button(29,32,155,-145,"*","*")
-	xcalc.button(29,32,155,-108,"/","/")
-	xcalc.button(29,32,120,-259,"c","COPPER")
-	xcalc.button(29,32,85,-259,"s","SILVER")
-	xcalc.button(29,32,50,-259,"g","GOLD")
-	xcalc.button(29,32,120,-221,".",".")
-	xcalc.button(64,32,50,-222,"0","0")
-	xcalc.button(29,32,50,-184,"1","1")
-	xcalc.button(29,32,85,-183,"2","2")
-	xcalc.button(29,32,120,-183,"3","3")
-	xcalc.button(29,32,50,-146,"4","4")
-	xcalc.button(29,32,85,-146,"5","5")
-	xcalc.button(29,32,120,-146,"6","6")
-	xcalc.button(29,32,50,-108,"7","7")
-	xcalc.button(29,32,85,-108,"8","8")
-	xcalc.button(29,32,120,-108,"9","9")
-	xcalc.button(29,32,15,-221,"MA","MA")
-	xcalc.button(29,32,15,-183,"MS","MS")
-	xcalc.button(29,32,15,-146,"MR","MR")
-	xcalc.button(29,32,15,-108,"MC","MC")
-
-	-- Option show button
-	local optionbutton = CreateFrame("Button", "xcalc_optionwindow_button",frame,"UIPanelButtonTemplate")
-	optionbutton:SetWidth(70)
-	optionbutton:SetHeight(25)
-	optionbutton:SetPoint("BOTTOMRIGHT",-15,15)
-	optionbutton:SetText("Options")
-	optionbutton:SetScript("OnClick", function() xcalc.optiondisplay() end)
-	xcalc.rebind()
-	tinsert(UISpecialFrames,"xcalc_window")
-end
-
-function xcalc.button(width, height, x, y, text, cmd)
-	local button = CreateFrame("Button", "xcalc." .. text, xcalc_window ,"UIPanelButtonTemplate")
-	button:SetWidth(width)
-	button:SetHeight(height)
-	button:SetPoint("TOPLEFT",x,y)
-	button:SetText(text)
-	button:SetScript("OnClick", function() xcalc.buttoninput(cmd) end)
-	xcalc.buttons = xcalc.buttons or {}
-	tinsert(xcalc.buttons,button)
-end
-
--- Draw the Option window
-function xcalc.optionframe()
-	-- Options window Frame
-	local frame = CreateFrame("Frame","xcalc_optionwindow",UIParent)
-	frame:SetFrameStrata("HIGH")
-	frame:EnableMouse(true)
-	frame:SetClampedToScreen(true)
-	frame:SetWidth(220)
-	frame:SetHeight(200)
-	frame:SetBackdrop({bgFile = "Interface/DialogFrame/UI-DialogBox-Background",
-		edgeFile = "Interface/DialogFrame/UI-DialogBox-Border",
-		tile = true, tileSize = 32, edgeSize = 32,
-		insets = { left = 11, right = 12, top = 12, bottom = 11 }})
-	frame:SetPoint("CENTER",230,0)
-	local titletexture = frame:CreateTexture("xcalc_optionwindow_titletexture")
-	titletexture:SetHeight(32)
-	titletexture:SetWidth(160)
-	titletexture:SetTexture("Interface/DialogFrame/UI-DialogBox-Header")
-	titletexture:SetTexCoord(0.2, 0.8, 0, 0.6)
-	titletexture:SetPoint("TOP",0,5)
-	local titlefont = frame:CreateFontString("xcalc_optionwindow_titlefont")
-	titlefont:SetHeight(0)
-	titlefont:SetWidth(140)
-	titlefont:SetFont(STANDARD_TEXT_FONT,12)
-	titlefont:SetPoint("TOP",0,-4)
-	titlefont:SetTextColor(1,0.8196079,0)
-	titlefont:SetText("Xcalc Options")
-	-- Options Okay Button
-	local okaybutton = CreateFrame("Button", "xcalc_optionokaybutton",frame,"UIPanelButtonTemplate")
-	okaybutton:SetWidth(70)
-	okaybutton:SetHeight(29)
-	okaybutton:SetPoint("BOTTOM",0,20)
-	okaybutton:SetText("Okay")
-	okaybutton:SetScript("OnClick", function() xcalc.optiondisplay() end)
-	-- Binding Check box
-	local bindingcheckbox = CreateFrame("CheckButton","xcalc_options_bindcheckbox",frame,"OptionsCheckButtonTemplate")
-	bindingcheckbox:SetPoint("TOPLEFT",15,-40)
-	bindingcheckbox:SetChecked(Xcalc_Settings.Binding)
-	bindingcheckbox:SetScript("OnClick", function() xcalc.options_binding() end)
-	local bindingcheckboxtext = frame:CreateFontString("xcalc_options_bindcheckboxtext")
-	bindingcheckboxtext:SetWidth(200)
-	bindingcheckboxtext:SetHeight(0)
-	bindingcheckboxtext:SetFont(STANDARD_TEXT_FONT,10)
-	bindingcheckboxtext:SetTextColor(1,0.8196079,0)
-	bindingcheckboxtext:SetJustifyH("LEFT")
-	bindingcheckboxtext:SetText("Use Automatic Key Bindings")
-	bindingcheckboxtext:SetPoint("LEFT","xcalc_options_bindcheckbox",30,0)
-	-- Display Minimap Check Box
-	local minimapcheckbox = CreateFrame("CheckButton","xcalc_options_minimapcheckbox",frame,"OptionsCheckButtonTemplate")
-	minimapcheckbox:SetPoint("TOPLEFT",15,-70)
-	minimapcheckbox:SetChecked(Xcalc_Settings.Minimapdisplay)
-	minimapcheckbox:SetScript("OnClick", function() xcalc.options_minimapdisplay() end)
-	local minimapcheckboxtext = minimapcheckbox:CreateFontString("xcalc_options_minimapcheckboxtext")
-	minimapcheckboxtext:SetWidth(200)
-	minimapcheckboxtext:SetHeight(0)
-	minimapcheckboxtext:SetFont(STANDARD_TEXT_FONT,10)
-	minimapcheckboxtext:SetTextColor(1,0.8196079,0)
-	minimapcheckboxtext:SetJustifyH("LEFT")
-	minimapcheckboxtext:SetText("Display Minimap Icon")
-	minimapcheckboxtext:SetPoint("LEFT","xcalc_options_minimapcheckbox",30,0)
-	-- Minimap Position Slider
-	local minimapslider = CreateFrame("Slider","xcalc_options_minimapslider",frame,"OptionsSliderTemplate")
-	minimapslider:SetWidth(180)
-	minimapslider:SetHeight(16)
-	minimapslider:SetMinMaxValues(0, 360)
-	minimapslider:SetValueStep(1)
-	minimapslider:SetScript("OnValueChanged", function() xcalc.options_minimapslidercontrol() end)
-	xcalc_options_minimapsliderHigh:SetText()
-	xcalc_options_minimapsliderLow:SetText()
-	xcalc_options_minimapsliderText:SetText("Minimap Button Position")
-	minimapslider:SetPoint("TOPLEFT",15,-120)
-	minimapslider:SetValue(Xcalc_Settings.Minimappos)
-
+	xcalc.displayhistory()
 end

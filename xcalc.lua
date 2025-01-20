@@ -1,27 +1,55 @@
 ﻿--[[
 	Xcalc see version in xcalc.toc.
 	author: moird
-	email: dan@moird.com
-	web: http://moird.com
 ]]
 
-local NAME, xcalc = ...
+xcalc = LibStub("AceAddon-3.0"):NewAddon("xcalc", "AceConsole-3.0", "AceEvent-3.0")
+local AC = LibStub("AceConfig-3.0")
+local ACD = LibStub("AceConfigDialog-3.0")
+XcalcMinimapButton = LibStub("LibDBIcon-1.0", true)
+
+local defaults = {
+	profile = {
+		minimap = {
+			hide = false,
+		},
+		binding = true,
+		historymax = 30,
+		history = {},
+	},
+}
+
+local options = {
+	name = "xcalc",
+	handler = xcalc,
+	type = "group",
+	args = {
+		binding = {
+			type = "toggle",
+			name = "AutoBinding",
+			desc = "Use Automatic Bindings",
+			get = "IsAutoBinding",
+			set = "ToggleAutoBinding",
+		},
+		history = {
+			type = "range",
+			name = "Calculation History",
+			desc = "Number of calculations to keep in history",
+			get = "GetHistoryMax",
+			set = "SetHistoryMax",
+			min = 1,
+			max = 100,
+			step = 1,
+		}
+	},
+}
+
+local frame = CreateFrame("Frame")
+local overrideOn = false
 
 -- Sudo General Namespaces and globals
 xcalc.events = {}
-Xcalc_Settings = {}
 xcalc.BindingMap = {}
-
-xcalc.NumberDisplay = "0"
-xcalc.RunningTotal = ""
-xcalc.PreviousKeyType = "none"
-xcalc.PreviousOP = ""
-
-xcalc.ConsoleLastAns = "0"
-xcalc.MemoryIndicator = ""
-xcalc.MemoryIndicatorON = "M"
-xcalc.MemoryNumber = "0"
-xcalc.MemorySet = "0"
 
 if (IsMacClient()) then
 	xcalc.BindingMap.NUMLOCK_MAC = "XC_NUMLOCK"
@@ -50,110 +78,113 @@ xcalc.BindingMap.NUMPAD9 = "XC_9"
 xcalc.BindingMap.NUMPADDECIMAL = "XC_DEC"
 
 
--- Register to addon load event
-local frame = CreateFrame("Frame")
-local overrideOn
+local miniButton = LibStub("LibDataBroker-1.1"):NewDataObject("xcalc", {
+	type = "data source",
+	text = "xcalc",
+	icon = "Interface\\AddOns\\xcalc\\xcalc_ButtonRoundNormal.tga",
+	OnClick = function(self, btn)
+		if btn == "LeftButton" then
+			xcalc.WindowFrame()
+		elseif btn == "RightButton" then
+			xcalc.optiondisplay()
+		end
+	end,
 
--- Main Initialization
-function xcalc.events:ADDON_LOADED(arg1, ...)
-	if( arg1 == NAME) then
-		-- Mod Initialization
-		SlashCmdList["XCALC"] = xcalc.cmdline
-		SLASH_XCALC1 = "/xcalc"
-		SLASH_XCALC2 = "/calc"
-		SLASH_XCALC3 = "/="
-		xcalc.optionvariables()
-		xcalc.minimap_init()
-		xcalc.VERSION = GetAddOnMetadata(NAME, "Version")
-		frame:UnregisterEvent("ADDON_LOADED")
+	OnTooltipShow = function(tooltip)
+		if not tooltip or not tooltip.AddLine then
+			return
+		end
+
+		tooltip:AddLine("xcalc\n\nLeft-click: Open xcalc\nRight-click: Open xcalc Settings", nil, nil, nil, nil)
+	end,
+})
+
+function xcalc:IsAutoBinding(info)
+	return self.db.profile.binding
+end
+
+function xcalc:ToggleAutoBinding(info, value)
+	if not value then
+		xcalc.unbind()
+	end
+	self.db.profile.binding = value
+end
+
+function xcalc:GetHistoryMax(info)
+	return self.db.profile.historymax
+end
+
+function xcalc:SetHistoryMax(info, value)
+	self.db.profile.historymax = value
+end
+
+function xcalc:GetHistory()
+	return self.db.profile.history
+end
+
+function xcalc:GetHistoryConsole()
+	local historystring = ""
+	for i=1, #self.db.profile.history do
+		if self.db.profile.history[#self.db.profile.history +1 -i] then
+			historystring = historystring .. "\n" .. self.db.profile.history[#self.db.profile.history +1 - i]
+		else
+			historystring = ""
+		end
+
+	end
+	return historystring
+end
+
+function xcalc:SetHistory(line)
+	if line then
+		table.insert(self.db.profile.history, 1, line)
+	end
+
+	if #self.db.profile.history >= self.db.profile.historymax then
+		for i=1, #self.db.profile.history - self.db.profile.historymax do
+			self.db.profile.history[#self.db.profile.history +1 - i] = nil
+		end
 	end
 end
 
-function xcalc.events:PLAYER_REGEN_ENABLED()
-	if xcalc_window and Xcalc_Settings.Binding and Xcalc_Settings.Binding == 1 then
-		if xcalc_window:IsShown() and not overrideOn then
+function xcalc:SlashCommand(msg)
+	if not msg or msg:trim() == "" then
+		self:WindowFrame()
+	elseif msg == "history" then
+		self:Print(xcalc:GetHistoryConsole())
+	else
+		local result = xcalc.xcalculate(xcalc.parse(msg))
+		if result then
+			self:SetHistory(msg .. " = " .. result)
+		else
+			result = 'nil'
+		end
+		self:Print(msg .. " = " .. result)
+	end
+end
+
+function xcalc:PLAYER_REGEN_ENABLED()
+	if xcalc.MainFrame and xcalc:IsAutoBinding() then
+		if xcalc.MainFrame:IsShown() and not overrideOn then
 			xcalc.rebind()
-		elseif not xcalc_window:IsShown() and overrideOn then
+		elseif not xcalc.MainFrame:IsShown() and overrideOn then
 			xcalc.unbind()
 		end
 	end
 end
+xcalc:RegisterEvent("PLAYER_REGEN_ENABLED")
 
-function xcalc.events:PLAYER_REGEN_DISABLED()
-	if Xcalc_Settings.Binding and Xcalc_Settings.Binding == 1 and overrideOn then 
+function xcalc:PLAYER_REGEN_DISABLED()
+	if xcalc:IsAutoBinding() and overrideOn then
 		xcalc.unbind() -- unconditionally remove our overrides on combat, we don' want to be hogging keys when someone's jumped.
 	end
 end
-
-frame:SetScript("OnEvent", function(self, event, ...) xcalc.events[event](self, ...) end)
-for k, v in pairs(xcalc.events) do
-	frame:RegisterEvent(k)
-end
-
-
--- Fuction for setting up Saved Variables
-function xcalc.optionvariables()
-	if (Xcalc_Settings.Binding == nil) then
-		Xcalc_Settings.Binding = 1
-	end
-	if (Xcalc_Settings.Minimapdisplay == nil) then
-		Xcalc_Settings.Minimapdisplay = 1
-	end
-	if (Xcalc_Settings.Minimappos == nil) then
-		Xcalc_Settings.Minimappos = 295
-	end
-end
-
---[[-------------------------------------------------------------------- 
-	Function for adding Debug messages via xcalc.debug(object) call
-	-------------------------------------------------------------------- ]]
-function xcalc.debug(object)
-	UIParentLoadAddOn("Blizzard_DebugTools")
-	_G['xcalcinfostruct'] = object
-	DevTools_DumpCommand('xcalcinfostruct')
-	_G['xcalcinfostruct'] = nil
-end
-
-function xcalc.tochat(...)
-	local expression,result = ...
-	if (DEFAULT_CHAT_FRAME) then
-		if (expression and result) then
-			DEFAULT_CHAT_FRAME:AddMessage(("XCalc: %s = %s"):format(expression,result),1.0, 1.0, 0.5)
-			if not DEFAULT_CHAT_FRAME:IsVisible() then FCF_SelectDockFrame(DEFAULT_CHAT_FRAME) end
-		end
-	else
-		print(tostringall(...))
-	end
-end
-
--- Function for handling the chat slash commands
-function xcalc.cmdline(msg)
-	-- this function handles our chat command
-	if (msg == nil or msg == "") then
-		xcalc.windowdisplay()
-		return nil
-	end
-
-	local expression = msg
-
-	local newexpression = xcalc.parse(expression)
-
-	local result = xcalc.xcalculate(newexpression)
-
-	if ( result == nil ) then
-		result = 'nil'
-	end
-
-	xcalc.ConsoleLastAns = result
-
-	-- message(result)
-	xcalc.tochat(expression,result)
-end
+xcalc:RegisterEvent("PLAYER_REGEN_DISABLED")
 
 -- Processes for binding and unbinding numberpad keys to Xcalc
 function xcalc.rebind()
-	if (Xcalc_Settings.Binding == 1) and not InCombatLockdown() then
-		
+	if xcalc:IsAutoBinding() and not InCombatLockdown() then
+
 		for key,value in pairs(xcalc.BindingMap) do
 			SetOverrideBinding(frame,false,key,value)
 		end
@@ -162,59 +193,15 @@ function xcalc.rebind()
 end
 
 function xcalc.unbind()
-	if (Xcalc_Settings.Binding == 1) and not InCombatLockdown() then
+	if xcalc:IsAutoBinding() and not InCombatLockdown() then
 		ClearOverrideBindings(frame)
-		overrideOn = nil
+		overrideOn = false
 	end
-end
-
--- Handle Key Inputs
-function xcalc.buttoninput(key)
-	if ( key == "CL" ) then
-		xcalc.clear()
-	elseif ( key == "CE") then
-		xcalc.ce()
-	elseif ( key == "PM" ) then
-		xcalc.plusminus()
-	elseif ( key == "GOLD" ) then
-		xcalc.stategold()
-	elseif ( key == "SILVER" ) then
-		xcalc.statesilver()
-	elseif ( key == "COPPER" ) then
-		xcalc.statecopper()
-	elseif ( key == "MC" ) then
-		xcalc.mc()
-	elseif ( key == "MA" ) then
-		xcalc.ma()
-	elseif ( key == "MS" ) then
-		xcalc.ms()
-	elseif ( key == "MR" ) then
-		xcalc.mr()
-	elseif ( key == "BS" ) then
-		xcalc.backspace()
-	elseif (key == "=" or key == "/" or key == "*" or key == "-" or key == "-" or key == "+" or key == "^") then
-		xcalc.funckey(key)
-	else
-		xcalc.numkey(key)
-	end
-end
-
--- Button Clear
-function xcalc.clear()
-	xcalc.RunningTotal = ""
-	xcalc.PreviousKeyType = "none"
-	xcalc.PreviousOP = ""
-	xcalc.display("0")
-end
-
--- Button CE
-function xcalc.ce()
-	xcalc.display("0")
 end
 
 -- Button Backspace
 function xcalc.backspace()
-	local currText = xcalc.NumberDisplay
+	local currText = xcalc.editbox:GetText()
 	if (currText == "0") then
 		return
 	else
@@ -233,7 +220,7 @@ end
 
 -- Button Plus Minus Key
 function xcalc.plusminus()
-	local currText = xcalc.NumberDisplay
+	local currText = xcalc.editbox:GetText()
 	if (currText ~= "0") then
 		if (string.find(currText, "-")) then
 			currText = string.sub(currText, 2)
@@ -241,154 +228,55 @@ function xcalc.plusminus()
 			currText = ("-%s"):format(currText)
 		end
 	end
-	xcalc.PreviousKeyType = "state"
 	xcalc.display(currText)
 end
 
 -- Button Gold (state)
 function xcalc.stategold()
-	local currText = xcalc.NumberDisplay
-	if (string.find(currText, "[csg]") == nil) then
+	local currText = xcalc.editbox:GetText()
+	if not string.find(currText, "[csg]") then
 		currText = ("%sg"):format(currText)
 	end
-	xcalc.PreviousKeyType = "state"
 	xcalc.display(currText)
 end
 
 -- Button Silver (state)
 function xcalc.statesilver()
-	local currText = xcalc.NumberDisplay
-	if (string.find(currText, "[cs]") == nil) then
+	local currText = xcalc.editbox:GetText()
+	if not string.find(currText, "[cs]") then
 		currText = ("%ss"):format(currText)
 	end
-	xcalc.PreviousKeyType = "state"
 	xcalc.display(currText)
 end
 
 -- Button Copper (state)
 function xcalc.statecopper()
-	local currText = xcalc.NumberDisplay
-	if (string.find(currText, "c") == nil) then
+	local currText = xcalc.editbox:GetText()
+	if not string.find(currText, "c") then
 		currText = ("%sc"):format(currText)
 	end
-	xcalc.PreviousKeyType = "state"
 	xcalc.display(currText)
 end
 
--- Button Memory Clear
-function xcalc.mc()
-	xcalc.MemoryNumber = "0"
-	xcalc.display(xcalc.NumberDisplay, "0")
-end
-
--- Button Memory Add
-function xcalc.ma()
-	local temp = xcalc.parse(("%s+%s"):format(xcalc.MemoryNumber,xcalc.NumberDisplay))
-	xcalc.MemoryNumber = xcalc.xcalculate(temp)
-	xcalc.display("0","1")
-	xcalc.clear()
-end
-
--- Button Memory Store
-function xcalc.ms()
-	xcalc.MemoryNumber = xcalc.parse(xcalc.NumberDisplay)
-	xcalc.display("0","1")
-	xcalc.clear()
-end
-
--- Button Memory Recall
-function xcalc.mr()
-	xcalc.display(xcalc.MemoryNumber)
-end
-
--- Sets up the function keys ie, + - * / =
-function xcalc.funckey(key)
-	local currText = xcalc.NumberDisplay
-	if ( IsShiftKeyDown() and key == "=" ) then
-		ChatFrame_OpenChat("")
-		return
-	end
-	if (xcalc.PreviousKeyType=="none" or xcalc.PreviousKeyType=="num" or xcalc.PreviousKeyType=="state") then
-			if (key == "/" or key == "*" or key == "-" or key == "-" or key == "+" or key == "^") then
-					
-				if (xcalc.PreviousOP~="" and xcalc.PreviousOP ~= "=") then
-					local temp = xcalc.parse(("%s%s%s"):format(xcalc.RunningTotal,xcalc.PreviousOP,currText))
-					currText = xcalc.xcalculate(temp)
-				end
-				xcalc.RunningTotal = currText
-				xcalc.PreviousOP = key
-			elseif (key == "=") then
-				if xcalc.PreviousOP ~= "=" and	xcalc.PreviousOP ~= "" then
-					local temp = xcalc.parse(("%s%s%s"):format(xcalc.RunningTotal,xcalc.PreviousOP,currText))
-					currText = xcalc.xcalculate(temp)
-					xcalc.RunningTotal = currText
-					xcalc.PreviousOP="="
-				end
-			end
-				
-	else -- must be a func key, a second+ time
-		if (key == "/" or key == "*" or key == "-" or key == "-" or key == "+" or key == "^") then
-			xcalc.PreviousOP=key
-		else
-			xcalc.PreviousOP=""
-		end 
-	end
-	xcalc.PreviousKeyType = "func"
-	xcalc.display(currText)
-end
-
--- Manage Number Inputs
-function xcalc.numkey(key)
-	local currText = xcalc.NumberDisplay
-	
-	if (xcalc.PreviousKeyType=="none" or xcalc.PreviousKeyType=="num" or xcalc.PreviousKeyType=="state")then
-		if (key == ".") then
-			if (string.find(currText, "[csg%.]") == nil) then
-				currText = ("%s."):format(currText)
-			end
-		else
-			if (currText == "0") then
-				currText = ""
-			end	
-
-			currText = ("%s%s"):format(currText,key)
-		end
-	else
-		if (key == ".") then
-			currText = "0."
-		else
-			currText = key
-		end
-	end
-
-	xcalc.PreviousKeyType = "num"
-	xcalc.display(currText)
-end
-
--- Send the number display to an open chatbox
-function xcalc.numberdisplay_click(frame,button,down)
-	if ( button == "LeftButton" ) then
-		if ( IsShiftKeyDown() ) then
-			local activeEdit = ChatEdit_GetActiveWindow()
-			if (activeEdit) then
-				activeEdit:Insert(xcalc.NumberDisplay)
-			end
-		end
+function xcalc:equalsbutton()
+	local problem = xcalc.editbox:GetText()
+	local result = xcalc.xcalculate(xcalc.parse(problem))
+	if result then
+		self:SetHistory(problem .. " = " .. result)
+		xcalc.displayhistory()
+		xcalc.display(result)
 	end
 end
 
--- Tooltip hint for linking result to chat
-function xcalc.numberdisplay_enter(frame)
-	GameTooltip:SetOwner(frame,"ANCHOR_TOP")	
-	GameTooltip:SetText("Shift-click inserts to an open chat")
-	GameTooltip:Show()
+function xcalc:UpdateEditBox(numkey)
+	local currentText = xcalc.editbox:GetText()
+	xcalc.display(currentText .. numkey)
 end
 
 
 --[[----------------------------------------------------------------------------------- 
-	Where the Calculations occur
-	On a side note, Simple is easier, getting into complex if/then/elseif/else statements
-	to perform math functions may introduce unexpected results... maybe.
+	Yup it is a total cheap and perfect way to run calculations by leveraging the LUA
+	interpreter for doing the actual math.
 	----------------------------------------------------------------------------------- ]]
 function xcalc.xcalculate(expression)
 	local tempvar = "QCExpVal"
@@ -400,13 +288,16 @@ function xcalc.xcalculate(expression)
 	return result
 end
 
--- This function parses the input for the money functions
+-- Parse the expression for gold or other math functions like sqrt
 function xcalc.parse(expression)
 	local ismoney = false
 
 	local newexpression = expression
 
-	newexpression = string.gsub(newexpression, "ans", xcalc.ConsoleLastAns)
+	newexpression = string.gsub(newexpression, "%%", "*.01")
+	newexpression = string.gsub(newexpression, "√%d+%.?%d*", function(a)
+		return "math.sqrt(" .. string.sub(a,4) .. ")"
+	end)
 
 	-- g s c
 	newexpression = string.gsub(newexpression, "%d+g%d+s%d+c", function (a)
@@ -459,7 +350,6 @@ function xcalc.parse(expression)
 	return newexpression
 end
 
--- The following two functions do the to and from gold calculations
 function xcalc.ToGSC(decimal, std)
 	local gold = 0
 	local silver = 0
@@ -511,7 +401,7 @@ function xcalc.ToGSC(decimal, std)
 end
 
 function xcalc.FromGSC(gold, silver, copper)
-	if (gold == nil) then
+	if not gold then
 		return ""
 	end
 
@@ -521,21 +411,21 @@ function xcalc.FromGSC(gold, silver, copper)
 		local temp = gold
 		
 		local golds,golde = string.find(temp, "%d*%.?%d*g")
-		if (golds == nil) then
+		if not golds then
 			gold = 0
 		else
 			gold = string.sub(temp, golds, golde - 1)
 		end
 	
 		local silvers,silvere = string.find(temp, "%d*%.?%d*s")
-		if (silvers == nil) then
+		if not silvers then
 			silver = 0
 		else
 			silver = string.sub(temp, silvers, silvere - 1)
 		end
 
 		local coppers,coppere = string.find(temp, "%d*c")
-		if (coppers == nil) then
+		if not coppers then
 			copper = 0
 		else
 			copper = string.sub(temp, coppers, coppere - 1)
@@ -549,4 +439,19 @@ function xcalc.FromGSC(gold, silver, copper)
 	return ("%s"):format(total)
 end
 
-_G[NAME] = xcalc
+function xcalc:OnInitialize()
+	self.db = LibStub("AceDB-3.0"):New("xcalcDB", defaults, true)
+	AC:RegisterOptionsTable("xcalc_options", options)
+	self.optionsFrame = ACD:AddToBlizOptions("xcalc_options", "xcalc")
+
+	local profiles = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
+	AC:RegisterOptionsTable("xcalc_Profiles", profiles)
+	ACD:AddToBlizOptions("xcalc_Profiles", "Profiles", "xcalc")
+	XcalcMinimapButton:Register("xcalc", miniButton, self.db.profile.minimap)
+	xcalc.VERSION = C_AddOns.GetAddOnMetadata("xcalc", "Version")
+
+	self:RegisterChatCommand("xcalc", "SlashCommand")
+	self:RegisterChatCommand("calc", "SlashCommand")
+	self:RegisterChatCommand("=", "SlashCommand")
+end
+XcalcMinimapButton:Show("xcalc")

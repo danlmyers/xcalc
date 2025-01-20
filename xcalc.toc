@@ -1,15 +1,27 @@
-## Interface: 60000
+## Interface: 11505,40401,110007
 ## Title: xcalc
 ## Author: Moird, Dridzt
 ## Version: @project-version@
-## Notes: Basic Calculator
-## eMail: dan@moird.com
+## Notes: A Basic Calculator
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
-## SavedVariablesPerCharacter: Xcalc_Settings
+## SavedVariablesPerCharacter: xcalcDB
+## OptionalDeps: Ace3
+## X-Curse-Project-ID: 19609
+## X-WoWI-ID: 5281
 
+Libs\LibStub\LibStub.lua
+Libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
+Libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
+Libs\AceAddon-3.0\AceAddon-3.0.xml
+Libs\AceEvent-3.0\AceEvent-3.0.xml
+Libs\AceDB-3.0\AceDB-3.0.xml
+Libs\AceDBOptions-3.0\AceDBOptions-3.0.xml
+Libs\AceConsole-3.0\AceConsole-3.0.xml
+Libs\AceGUI-3.0\AceGUI-3.0.xml
+Libs\AceConfig-3.0\AceConfig-3.0.xml
+Libs\LibDBIcon-1.0\LibDBIcon-1.0.lua
+
+Localization.lua
 xcalc.lua
 xcalcgui.lua
-elvui.lua
-Localization.lua
-Bindings.xml

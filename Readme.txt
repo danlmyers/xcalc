@@ -1,5 +1,5 @@
 Xcalc
-Author: Moird (dan@moird.com)
+Author: Daniel Myers (Moird) & Dridzt
 
 Xcalc is a fairly basic calculator that allows mathmatical equations to be entered via the console
 or by using the GUI calculator interface.
