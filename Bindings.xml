@@ -1,66 +1,66 @@
 ﻿<Bindings>
-	<Binding name="XC_TOGGLEWINDOW" header="XCALC">
-		xcalc.windowdisplay();
+	<Binding name="XC_TOGGLEWINDOW" category="BINDING_HEADER_XCALC">
+		xcalc:WindowFrame();
 	</Binding>
 
-	<Binding name="XC_NUMLOCK" hidden="true"/>
+	<Binding name="XC_NUMLOCK" hidden="true" />
 
 
 	<Binding name="XC_CLEAR" hidden="true">
-		xcalc.buttoninput("CL");
+		xcalc.display(0);
 	</Binding>
 	<Binding name="XC_BACKSPACE" hidden="true">
-		xcalc.buttoninput("BS")
+		xcalc.backspace()
 	</Binding>
 
 	<Binding name="XC_DIV" hidden="true">
-		xcalc.buttoninput("/");
+		xcalc.UpdateEditBox("/");
 	</Binding>
 	<Binding name="XC_MUL" hidden="true">
-		xcalc.buttoninput("*");
+		xcalc.UpdateEditBox("*");
 	</Binding>
 	<Binding name="XC_SUB" hidden="true">
-		xcalc.buttoninput("-");
+		xcalc.UpdateEditBox("-");
 	</Binding>
 	<Binding name="XC_ADD" hidden="true">
-		xcalc.buttoninput("+");
+		xcalc.UpdateEditBox("+");
 	</Binding>
 	<Binding name="XC_EQ" hidden="true">
-		xcalc.buttoninput("=");
+		xcalc.UpdateEditBox("=");
 	</Binding>
 
 	<Binding name="XC_0" hidden="true">
-		xcalc.buttoninput("0");
+		xcalc.UpdateEditBox("0");
 	</Binding>
 	<Binding name="XC_1" hidden="true">
-		xcalc.buttoninput("1");
+		xcalc.UpdateEditBox("1");
 	</Binding>
 	<Binding name="XC_2" hidden="true">
-		xcalc.buttoninput("2");
+		xcalc.UpdateEditBox("2");
 	</Binding>
 	<Binding name="XC_3" hidden="true">
-		xcalc.buttoninput("3");
+		xcalc.UpdateEditBox("3");
 	</Binding>
 	<Binding name="XC_4" hidden="true">
-		xcalc.buttoninput("4");
+		xcalc.UpdateEditBox("4");
 	</Binding>
 	<Binding name="XC_5" hidden="true">
-		xcalc.buttoninput("5");
+		xcalc.UpdateEditBox("5");
 	</Binding>
 	<Binding name="XC_6" hidden="true">
-		xcalc.buttoninput("6");
+		xcalc.UpdateEditBox("6");
 	</Binding>
 	<Binding name="XC_7" hidden="true">
-		xcalc.buttoninput("7");
+		xcalc.UpdateEditBox("7");
 	</Binding>
 	<Binding name="XC_8" hidden="true">
-		xcalc.buttoninput("8");
+		xcalc.UpdateEditBox("8");
 	</Binding>
 	<Binding name="XC_9" hidden="true">
-		xcalc.buttoninput("9");
+		xcalc.UpdateEditBox("9");
 	</Binding>
 
 	<Binding name="XC_DEC" hidden="true">
-		xcalc.buttoninput(".");
+		xcalc.UpdateEditBox(".");
 	</Binding>
 </Bindings>
